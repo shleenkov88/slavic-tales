@@ -21,7 +21,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/ruslan-display-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/philosopher-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 <script>document.documentElement.className+=' js';</script>
 </head>
 <body id="top">
@@ -50,6 +50,10 @@
     <a class="sbtn sbtn-main" href="#tales">Читать сказки</a>
     <a class="sbtn" href="#characters">Кто здесь живёт</a>
   </p>
+  <div class="resume" id="resume" hidden>
+    <a class="resume-go" id="resume-go" href="#tales"><span class="resume-k">Продолжить чтение</span><span class="resume-t" id="resume-t"></span></a>
+    <button type="button" class="resume-x" id="resume-x" aria-label="Забыть место чтения">Начать заново</button>
+  </div>
 </section>
 
 <section class="wrap" id="tales" aria-labelledby="h-tales">
@@ -490,6 +494,13 @@
       <li>В. Я. Пропп, «Исторические корни волшебной сказки», глава III: <a href="https://www.gumer.info/bibliotek_Buks/Linguist/Propp_2/03.php" rel="noopener">gumer.info</a> (сетевая копия, не издание правообладателя).</li>
       <li>Строка «Что говорят учёные» есть только у Бабы Яги (Пропп, пункт выше) и у Морозко — тип сюжета 480, по <a href="https://ru.wikipedia.org/wiki/Морозко_(сказка)" rel="noopener">статье Википедии</a>. Карточки Лешего, Водяного, Домового, Русалки и Змея Горыныча собраны по устойчивым мотивам быличек и былины: это не выписка из одного издания. Жар-птица — № 169—170 того же сборника, говорящий серый волк — № 168. Этих двух текстов на сайте нет.</li>
       <li><a href="https://shleenkov88.github.io/slavic-gods/">Славянские боги</a> — карточка Мараны и раздел «Как читать».</li>
+      <li id="music-credits"><strong>Музыка</strong> (включается кнопкой 🎵, по умолчанию выключена). Все три трека — Kevin MacLeod (<a href="https://incompetech.com" rel="noopener">incompetech.com</a>), лицензия <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">Creative Commons: By Attribution 4.0</a>. Файлы сжаты в mp3 96 кбит/с, громкость выровнена, добавлены короткие плавные начало и конец; больше ничего не менялось.
+        <ul>
+          <li>«Teller of the Tales» — <a href="https://incompetech.com/music/royalty-free/music.html?isrc=USUAN1400020" rel="noopener">страница трека</a></li>
+          <li>«Midnight Tale» — <a href="https://incompetech.com/music/royalty-free/music.html?isrc=USUAN1900004" rel="noopener">страница трека</a></li>
+          <li>«Enchanted Journey» — <a href="https://incompetech.com/music/royalty-free/music.html?isrc=USUAN1100799" rel="noopener">страница трека</a></li>
+        </ul>
+      </li>
       <li>Все карточки в разделе «Персонажи», отдельно злые и добрые. Садко — былина. Кикимора — по словарю В. И. Даля. Раздел «Разбор»: концовки сверены с текстами сайта, с дневниковой пометой Пушкина о цензуре «Золотого петушка» и с «Пословицами русского народа» В. И. Даля (1853). Чтение Д. И. Антонова о концовке названо как чтение, не как текст сказки.</li>
     </ul>
   </div>
@@ -498,6 +509,7 @@
 
 <footer class="wrap foot">
   <p>Славянские сказки. Заставка у каждой. Женский голос пока читает «Гуси-лебеди» целиком.</p>
+  <p class="mcredit">Music: «Teller of the Tales», «Midnight Tale», «Enchanted Journey» by Kevin MacLeod (<a href="https://incompetech.com" rel="noopener">incompetech.com</a>), licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">Creative Commons: By Attribution 4.0</a>.</p>
   <p><a href="#top">Наверх ↑</a> · <a href="https://shleenkov88.github.io/slavic-gods/">Славянские боги ↗</a></p>
 </footer>
 
@@ -2552,6 +2564,11 @@
   </div>
 </div>
 
-<script src="app.js?v=3"></script>
+<div class="fab" id="fab">
+  <button type="button" class="fab-up" id="to-top" aria-label="Наверх" hidden><span aria-hidden="true">↑</span><span class="fab-t">Наверх</span></button>
+  <button type="button" class="fab-music" id="music" aria-label="Фоновая музыка" aria-pressed="false" title="Фоновая музыка: выключена"><span aria-hidden="true">🎵</span></button>
+</div>
+
+<script src="app.js?v=4"></script>
 </body>
 </html>
