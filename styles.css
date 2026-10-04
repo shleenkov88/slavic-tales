@@ -101,6 +101,7 @@ section.wrap + section.wrap::after {
 .cgrid, .pgrid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
 .where, .sci, .pl { font-size: 17px; }
 .where { color: var(--muted); }
+.epithet { margin: 0 0 4px; color: var(--gold); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; }
 .where.none { opacity: .95; }
 .sci { border-left: 3px solid var(--gold); padding-left: 12px; color: var(--ink); overflow-wrap: anywhere; }
 .sci strong, .where strong { color: var(--gold2); font-weight: 700; }
@@ -117,9 +118,19 @@ section.wrap + section.wrap::after {
 .tale-text::before { content: attr(data-title); display: block; font-family: "Ruslan Display", Georgia, serif; font-size: 30px; color: var(--gold2); margin-bottom: 12px; }
 
 /* режим чтения */
-.reader { position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column; background: #1c130f; color: var(--ink); }
+.reader {
+  position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column; color: var(--ink);
+  background:
+    radial-gradient(ellipse 120% 70% at 50% -10%, rgba(140,44,44,.34), transparent 62%),
+    radial-gradient(ellipse 100% 55% at 50% 110%, rgba(34,86,80,.28), transparent 60%),
+    linear-gradient(180deg, #1a120e 0%, #241610 42%, #140e0b 100%);
+}
 .reader[hidden] { display: none; }
-.rbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px max(12px, env(safe-area-inset-left)); min-height: var(--barh); border-bottom: 1px solid rgba(198,161,91,.45); background: rgba(24,17,13,.98); flex: none; }
+.rbar { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px max(12px, env(safe-area-inset-left)); min-height: var(--barh); border-bottom: 1px solid rgba(198,161,91,.45); background: rgba(24,17,13,.94); flex: none; }
+.rpos { margin: 0; flex: 1 1 auto; text-align: center; color: var(--gold); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+.rpos[hidden] { display: none; }
+.rprog { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: rgba(198,161,91,.22); }
+.rprog > span { display: block; height: 100%; width: 100%; transform: scaleX(0); transform-origin: left center; background: var(--gold2); }
 .rsize { display: flex; gap: 8px; }
 .rbtn { min-height: 44px; min-width: 44px; padding: 0 14px; font: inherit; font-size: 17px; color: var(--gold2); background: rgba(198,161,91,.12); border: 1px solid var(--gold); border-radius: 999px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .rbtn:disabled { opacity: .45; cursor: default; }
@@ -135,7 +146,10 @@ section.wrap + section.wrap::after {
 .prose p.dlg { padding-left: 1.1em; text-indent: -1.1em; }
 .prose .variant[hidden] { display: none; }
 .prose .vh { font-family: "Philosopher", Georgia, serif; font-size: 15px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin: 0 0 1em; }
-.prose .variant > p:first-of-type::first-letter { color: var(--gold2); font-family: "Ruslan Display", Georgia, serif; font-size: 1.5em; line-height: 1; }
+.prose .variant > p:first-of-type:not(.dlg)::first-letter {
+  font-family: "Philosopher", Georgia, serif; font-weight: 700; float: left;
+  font-size: 3.15em; line-height: 0.78; padding: 0.06em 0.1em 0 0; color: var(--gold2);
+}
 .rpage .vh { display: none; }
 .rsrc { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 17px; overflow-wrap: anywhere; }
 .rsrc p { margin: 0 0 .6em; }
@@ -151,6 +165,8 @@ section.wrap + section.wrap::after {
   .lede { font-size: 19px; }
   .sbtn { flex: 1 1 100%; }
   .tcard, .char, .plot { padding: 16px; }
+  .rbar { flex-wrap: wrap; row-gap: 4px; }
+  .rpos { flex: 1 0 100%; order: 3; text-align: left; letter-spacing: .08em; }
 }
 @media (max-width: 420px) { .rbtn { padding: 0 12px; } .rpage { padding-top: 20px; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }

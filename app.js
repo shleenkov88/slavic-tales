@@ -20,6 +20,7 @@
   /* ---------- режим чтения ---------- */
   var reader = $('#reader'), scroller = $('#r-scroll');
   var rTitle = $('#r-title'), rKicker = $('#r-kicker'), rTabs = $('#r-tabs'), rBody = $('#r-body'), rSrc = $('#r-src'), rNext = $('#r-next');
+  var rPos = $('#r-pos'), prog = $('#r-prog');
   var minus = $('#r-minus'), plus = $('#r-plus');
   var inertEls = $$('#bar, #main, .foot, #texts, .skip');
   var order = $$('.tale-text').map(function (a) { return a.id.replace('tale-', ''); });
@@ -45,37 +46,72 @@
   minus.addEventListener('click', function () { changeRs(-2); });
   plus.addEventListener('click', function () { changeRs(2); });
 
+  function syncProg() {
+    var max = scroller.scrollHeight - scroller.clientHeight;
+    var p = max > 8 ? scroller.scrollTop / max : 1;
+    prog.style.transform = 'scaleX(' + p + ')';
+  }
+  scroller.addEventListener('scroll', syncProg, { passive: true });
+
   function showVariant(k) {
     var vs = $$('.variant', rBody);
     vs.forEach(function (v, i) { v.hidden = i !== k; });
     $$('button', rTabs).forEach(function (b, i) { b.setAttribute('aria-pressed', i === k ? 'true' : 'false'); });
+    var v = vs[k];
+    if (v) {
+      rKicker.textContent = 'по Афанасьеву № ' + v.getAttribute('data-num') + ' · около ' + v.getAttribute('data-min') + ' мин';
+      if (vs.length > 1) {
+        rPos.hidden = false;
+        rPos.textContent = 'вариант ' + (k + 1) + ' из ' + vs.length;
+      } else {
+        rPos.hidden = true;
+        rPos.textContent = '';
+      }
+    }
     scroller.scrollTop = 0;
+    requestAnimationFrame(syncProg);
   }
 
-  function render(slug) {
+  function variantIndex(art, num) {
+    var vs = $$('.variant', art);
+    if (!num) return 0;
+    for (var i = 0; i < vs.length; i++) {
+      if (vs[i].getAttribute('data-num') === String(num)) return i;
+    }
+    return 0;
+  }
+
+  function render(slug, num) {
     var art = $('#tale-' + slug);
     rTitle.textContent = art.getAttribute('data-title');
-    rKicker.textContent = 'по Афанасьеву ' + art.getAttribute('data-nums') + ' · около ' + art.getAttribute('data-min') + ' мин';
     rBody.innerHTML = '';
     rTabs.innerHTML = '';
     var variants = $$('.variant', art);
     variants.forEach(function (v) { rBody.appendChild(v.cloneNode(true)); });
+    var start = variantIndex(art, num);
     if (variants.length > 1) {
       variants.forEach(function (v, i) {
         var b = document.createElement('button');
-        b.type = 'button'; b.textContent = v.getAttribute('data-label');
-        b.addEventListener('click', function () { showVariant(i); });
+        b.type = 'button';
+        b.textContent = '№ ' + v.getAttribute('data-num') + ' · ~' + v.getAttribute('data-min') + ' мин';
+        b.addEventListener('click', function () {
+          showVariant(i);
+          var next = '#tale-' + slug + '/' + v.getAttribute('data-num');
+          if (location.hash !== next) history.replaceState(null, '', next);
+        });
         rTabs.appendChild(b);
       });
     }
-    showVariant(0);
+    showVariant(start);
+    var canon = '#tale-' + slug + '/' + variants[start].getAttribute('data-num');
+    if (location.hash !== canon) history.replaceState(null, '', canon);
     rSrc.innerHTML = '';
     var src = $('.tale-src', art);
     if (src) rSrc.innerHTML = src.innerHTML;
     rNext.innerHTML = '';
     var i = order.indexOf(slug);
-    [[i - 1, '← '], [i + 1, '']].forEach(function (p, n) {
-      var s = order[p[0]];
+    [[i - 1, '← '], [i + 1, '']].forEach(function (pair, n) {
+      var s = order[pair[0]];
       if (!s) return;
       var a = document.createElement('a');
       a.href = '#tale-' + s;
@@ -85,7 +121,7 @@
     document.title = art.getAttribute('data-title') + ' — Славянские сказки';
   }
 
-  function openReader(slug) {
+  function openReader(slug, num) {
     if (!$('#tale-' + slug)) return;
     if (!isOpen) {
       lastTrigger = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
@@ -95,7 +131,7 @@
       isOpen = true;
     }
     setMenu(false);
-    render(slug);
+    render(slug, num || '');
     scroller.scrollTop = 0;
     rTitle.focus({ preventScroll: true });
   }
@@ -108,13 +144,14 @@
     document.title = baseTitle;
     if (lastTrigger && document.contains(lastTrigger)) lastTrigger.focus({ preventScroll: true });
   }
-  function slugFromHash() {
-    var m = /^#tale-([a-z-]+)$/.exec(location.hash);
-    return m && $('#tale-' + m[1]) ? m[1] : null;
+  function parseHash() {
+    var m = /^#tale-([a-z-]+)(?:\/(\d+))?$/.exec(location.hash);
+    if (!m || !$('#tale-' + m[1])) return null;
+    return { slug: m[1], num: m[2] || '' };
   }
   function onHash() {
-    var s = slugFromHash();
-    if (s) openReader(s); else closeReader();
+    var h = parseHash();
+    if (h) openReader(h.slug, h.num); else closeReader();
   }
   window.addEventListener('hashchange', function () { cameFromSite = true; onHash(); });
 
