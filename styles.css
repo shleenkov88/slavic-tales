@@ -186,3 +186,9 @@ html:not(.js) .menubtn { display: none; }
 html:not(.js) .menu { display: flex; position: static; flex-direction: row; flex-wrap: wrap; box-shadow: none; border: 0; padding: 0 0 8px; background: none; }
 html:not(.js) .menu a { min-height: 40px; padding: 4px 10px; font-size: 17px; }
 html:not(.js) .barrow { flex-wrap: wrap; }
+
+.ctag { margin: 0 0 6px; }
+.tg { display: inline-block; padding: 1px 8px; border: 1px solid var(--line); font-size: 13px; letter-spacing: .04em; text-transform: lowercase; color: var(--gold2); }
+.tg-s { color: var(--gold2); }
+.tg-f { color: var(--text); }
+.tg-h { color: var(--muted); }
