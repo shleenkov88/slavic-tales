@@ -320,20 +320,29 @@
   ];
   var TARGET = 0.25, FADE_IN = 2500, FADE_OUT = 1500;
   var mBtn = $('#music'), mAudio = null, mCtx = null, mGain = null, mLevel = 0, mTimer = null, mIndex = 0;
-  var wantOn = lsGet('tales-music') === '1', gesture = false, voiceOn = false, playing = false, endFading = false;
+  var wantOn = lsGet('tales-music') === '1', gesture = false, voiceOn = false, away = false, playing = false, endFading = false;
 
-  function applyLevel(v) {
+  function applyLevel(v, bookOnly) {
     mLevel = v;
-    if (mGain && mCtx) mGain.gain.setTargetAtTime(v, mCtx.currentTime, 0.04);
-    else if (mAudio) mAudio.volume = Math.max(0, Math.min(1, v));
+    if (!bookOnly) {
+      if (mGain && mCtx) { mGain.gain.cancelScheduledValues(mCtx.currentTime); mGain.gain.setTargetAtTime(v, mCtx.currentTime, 0.04); }
+      else if (mAudio) mAudio.volume = Math.max(0, Math.min(1, v));
+    }
     mBtn.setAttribute('data-level', v.toFixed(2));
   }
   function fadeTo(v, ms, done) {
     if (mTimer) clearInterval(mTimer);
-    var from = mLevel, t0 = Date.now();
+    var from = mLevel, t0 = Date.now(), ramp = !!(mGain && mCtx);
+    if (ramp) {
+      /* плавное изменение считает аудиопоток: оно не замирает в свёрнутой вкладке */
+      var g = mGain.gain, now = mCtx.currentTime;
+      g.cancelScheduledValues(now);
+      g.setValueAtTime(g.value, now);
+      g.linearRampToValueAtTime(v, now + ms / 1000);
+    }
     mTimer = setInterval(function () {
       var k = Math.min(1, (Date.now() - t0) / ms);
-      applyLevel(from + (v - from) * k);
+      applyLevel(from + (v - from) * k, ramp);
       if (k >= 1) { clearInterval(mTimer); mTimer = null; if (done) done(); }
     }, 50);
   }
@@ -384,15 +393,25 @@
     if (p && p.catch) p.catch(blocked);
     fadeTo(TARGET, FADE_IN);
   }
-  function stopMusic() {
+  function stopMusic(ms) {
     if (!mAudio) return;
-    fadeTo(0, FADE_OUT, function () { if (!playing && mAudio) mAudio.pause(); });
+    var done = function () { if (!playing && mAudio) mAudio.pause(); };
+    fadeTo(0, ms || FADE_OUT, done);
+    /* в свёрнутой вкладке таймеры замедляются: пауза не должна зависеть только от них */
+    setTimeout(done, (ms || FADE_OUT) + 300);
   }
+  /* музыка играет, только если её включили и ничто из двух не мешает: голос сказки и свёрнутая страница */
   function sync() {
-    var should = wantOn && gesture && !voiceOn;
+    var should = wantOn && gesture && !voiceOn && !away;
     if (should && !playing) { playing = true; startMusic(); }
-    else if (!should && playing) { playing = false; stopMusic(); }
+    else if (!should && playing) { playing = false; stopMusic(away ? 800 : FADE_OUT); }
   }
+  function setAway(v) { if (away !== v) { away = v; sync(); } }
+  document.addEventListener('visibilitychange', function () { setAway(document.hidden || document.visibilityState === 'hidden'); });
+  window.addEventListener('pagehide', function () { setAway(true); });
+  window.addEventListener('pageshow', function () { setAway(!!document.hidden); });
+  window.addEventListener('blur', function () { setAway(true); });
+  window.addEventListener('focus', function () { setAway(!!document.hidden); });
   function paintMusic() {
     mBtn.setAttribute('aria-pressed', wantOn ? 'true' : 'false');
     mBtn.setAttribute('title', 'Фоновая музыка: ' + (wantOn ? 'включена' : 'выключена'));
