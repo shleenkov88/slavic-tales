@@ -21,7 +21,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/ruslan-display-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/philosopher-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=7">
 <script>document.documentElement.className+=' js';</script>
 </head>
 <body id="top">
@@ -33,7 +33,6 @@
     <nav class="menu" id="menu" aria-label="Разделы сайта">
       <a href="#tales">Сказки</a>
       <a href="#characters">Персонажи</a>
-      <a href="#plots">Сюжеты</a>
       <a href="#reading">Разбор</a>
       <a href="#gods">Связь с богами</a>
       <a class="ext" href="https://shleenkov88.github.io/slavic-gods/">Славянские боги <span aria-hidden="true">↗</span><span class="vh-only">(другой сайт)</span></a>
@@ -53,6 +52,10 @@
   <div class="resume" id="resume" hidden>
     <a class="resume-go" id="resume-go" href="#tales"><span class="resume-k">Продолжить чтение</span><span class="resume-t" id="resume-t"></span></a>
     <button type="button" class="resume-x" id="resume-x" aria-label="Забыть место чтения">Начать заново</button>
+  </div>
+  <div class="unf" id="unf" hidden>
+    <p class="unf-k" id="unf-k">Недочитанные</p>
+    <ul class="unf-list" id="unf-list" aria-labelledby="unf-k"></ul>
   </div>
 </section>
 
@@ -184,7 +187,7 @@
 
 <section class="wrap" id="characters" aria-labelledby="h-chars">
   <h2 id="h-chars">Персонажи</h2>
-  <p class="lede">Сначала те, кто есть в текстах на сайте. Ниже — кого в этих семнадцати сказках нет. Пометки как на сайте про богов: источник, фольклорная запись, гипотеза.</p>
+  <p class="lede">Сначала те, кто есть в текстах на сайте (повторяющиеся ходы сказок — в разделе <a href="#plots">«Сюжеты»</a>). Ниже — кого в этих семнадцати сказках нет. Пометки как на сайте про богов: источник, фольклорная запись, гипотеза.</p>
   <h3 class="split" id="evil">Злые</h3>
   <div class="cgrid">
 
@@ -2546,6 +2549,7 @@
     </div>
     <div class="rprog" aria-hidden="true"><span id="r-prog"></span></div>
   </div>
+  <p class="rleft" id="r-left" aria-live="off"></p>
   <div class="rscroll" id="r-scroll" tabindex="-1">
     <div class="rpage">
       <p class="kicker" id="r-kicker"></p>
@@ -2560,7 +2564,15 @@
       </div>
       <div class="rtabs" id="r-tabs" role="group" aria-label="Варианты сказки"></div>
       <div class="prose" id="r-body" lang="ru"></div>
+      <div class="rmark" id="r-mark">
+        <p class="rstate" id="r-state" role="status"></p>
+        <div class="rmbtns">
+          <button type="button" class="rbtn" id="r-done">Отметить прочитанной</button>
+          <button type="button" class="rbtn" id="r-reset">Сбросить</button>
+        </div>
+      </div>
       <aside class="rsrc" id="r-src" aria-label="Источник текста"></aside>
+      <aside class="rrel" id="r-related" aria-label="Ещё сказки с этим героем" hidden></aside>
       <nav class="rnext" id="r-next" aria-label="Другие сказки"></nav>
     </div>
   </div>
@@ -2571,6 +2583,6 @@
   <button type="button" class="fab-music" id="music" aria-label="Фоновая музыка" aria-pressed="false" title="Фоновая музыка: выключена"><span aria-hidden="true">🎵</span></button>
 </div>
 
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

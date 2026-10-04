@@ -35,6 +35,8 @@
   var baseTitle = document.title;
   var lastTrigger = null, cameFromSite = false, isOpen = false;
   var curSlug = null, pendingResume = null, restoreIdx = null, restoreUntil = 0, saveTimer = null;
+  var listY = null, jumpHold = false, audioKey = null, pendingT = 0, lastSavedT = 0, words = 0;
+  var rLeft = $('#r-left'), rRelated = $('#r-related'), rState = $('#r-state'), rDone = $('#r-done'), rReset = $('#r-reset');
 
   var RS_MIN = 16, RS_MAX = 36, rs = 0;
   function loadRs() {
@@ -72,6 +74,7 @@
     var max = scroller.scrollHeight - scroller.clientHeight;
     var p = max > 8 ? scroller.scrollTop / max : 1;
     prog.style.transform = 'scaleX(' + p + ')';
+    updateLeft();
   }
   scroller.addEventListener('scroll', syncProg, { passive: true });
 
@@ -83,13 +86,22 @@
     if (v) {
       rKicker.textContent = 'по Афанасьеву № ' + v.getAttribute('data-num') + ' · около ' + v.getAttribute('data-min') + ' мин';
       var audio = v.getAttribute('data-audio');
+      saveVoice(true);
       rAudio.pause();
       if (audio) {
+        var ve = ent(curSlug, v.getAttribute('data-num') || '');
+        pendingT = ve && ve.t > 3 ? ve.t : 0;
         rAudio.hidden = false;
         rVoice.hidden = false;
-        rVoice.textContent = 'Голос читает эту запись целиком.';
-        if (rAudio.getAttribute('src') !== audio) rAudio.src = audio;
+        rVoice.textContent = 'Голос читает эту запись целиком.' + (pendingT ? ' Продолжится с ' + fmtT(pendingT) + '.' : '');
+        if (rAudio.getAttribute('src') !== audio) {
+          rAudio.src = audio;
+          if (pendingT) { try { rAudio.currentTime = pendingT; } catch (e) {} }
+        }
+        audioKey = curSlug + '/' + (v.getAttribute('data-num') || '');
+        lastSavedT = pendingT;
       } else {
+        audioKey = null; pendingT = 0;
         rAudio.hidden = true;
         rAudio.removeAttribute('src');
         rVoice.hidden = false;
@@ -104,7 +116,9 @@
       }
     }
     scroller.scrollTop = 0;
-    requestAnimationFrame(syncProg);
+    countWords();
+    paintMark();
+    requestAnimationFrame(function () { syncProg(); updateLeft(); });
   }
 
   function variantIndex(art, num) {
@@ -118,6 +132,7 @@
 
   function render(slug, num) {
     var art = $('#tale-' + slug);
+    if (saveTimer != null) { clearTimeout(saveTimer); saveProgress(); }
     curSlug = slug;
     rTitle.textContent = art.getAttribute('data-title');
     var img = art.getAttribute('data-img');
@@ -149,14 +164,18 @@
     if (src) rSrc.innerHTML = src.innerHTML;
     rNext.innerHTML = '';
     var i = order.indexOf(slug);
-    [[i - 1, '← '], [i + 1, '']].forEach(function (pair, n) {
-      var s = order[pair[0]];
-      if (!s) return;
+    [[i - 1, 'Предыдущая', '← '], [i + 1, 'Следующая', '']].forEach(function (pair, n) {
+      var sl = order[pair[0]];
+      if (!sl) return;
       var a = document.createElement('a');
-      a.href = '#tale-' + s;
-      a.textContent = (n === 0 ? '← ' : '') + $('#tale-' + s).getAttribute('data-title') + (n === 1 ? ' →' : '');
+      a.href = '#tale-' + sl;
+      a.className = n === 0 ? 'rn-prev' : 'rn-next';
+      a.innerHTML = '<span class="rn-k"></span><span class="rn-t"></span>';
+      a.firstChild.textContent = pair[2] + pair[1] + (n === 1 ? ' →' : '');
+      a.lastChild.textContent = $('#tale-' + sl).getAttribute('data-title');
       rNext.appendChild(a);
     });
+    renderRelated(slug);
     document.title = art.getAttribute('data-title') + ' — Славянские сказки';
   }
 
@@ -164,12 +183,14 @@
     if (!$('#tale-' + slug)) return;
     if (!isOpen) {
       lastTrigger = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
+      listY = window.pageYOffset;
       inertEls.forEach(function (el) { el.setAttribute('inert', ''); });
       reader.hidden = false;
       root.classList.add('reading');
       isOpen = true;
     }
     setMenu(false);
+    jumpHold = false;
     render(slug, num || '');
     scroller.scrollTop = 0;
     rTitle.focus({ preventScroll: true });
@@ -177,8 +198,17 @@
     pendingResume = null;
     updateUp();
   }
+  function restoreList() {
+    if (listY == null) return false;
+    var y = listY, go = function () { window.scrollTo(0, y); };
+    listY = null;
+    go(); requestAnimationFrame(go); setTimeout(go, 90); setTimeout(go, 300);
+    return true;
+  }
   function closeReader() {
     if (!isOpen) return;
+    saveVoice(true);
+    if (saveTimer != null) { clearTimeout(saveTimer); saveProgress(); }
     reader.hidden = true;
     if (rAudio) rAudio.pause();
     root.classList.remove('reading');
@@ -187,6 +217,7 @@
     document.title = baseTitle;
     if (lastTrigger && document.contains(lastTrigger)) lastTrigger.focus({ preventScroll: true });
     restoreIdx = null;
+    didRestore = restoreList();
     updateResume();
     updateUp();
   }
@@ -205,7 +236,7 @@
     if (cameFromSite) { history.back(); return; }
     history.replaceState(null, '', '#tales');
     closeReader();
-    var t = $('#tales'); if (t) t.scrollIntoView();
+    if (!didRestore) { var t = $('#tales'); if (t) t.scrollIntoView(); }
   });
   rNext.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a');
@@ -227,6 +258,7 @@
     if (!vis) return;
     var ps = $$('p', vis);
     var el = ps[Math.min(ps.length - 1, Math.floor(ps.length * part))] || vis;
+    jumpHold = part > 0;
     el.scrollIntoView({ block: 'start' });
   });
 
@@ -252,62 +284,411 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(again);
   }
   ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach(function (ev) {
-    scroller.addEventListener(ev, function () { restoreIdx = null; restoreUntil = 0; }, { passive: true });
+    scroller.addEventListener(ev, function () { restoreIdx = null; restoreUntil = 0; jumpHold = false; }, { passive: true });
   });
 
-  function saveProgress() {
-    saveTimer = null;
-    if (!isOpen || !curSlug || Date.now() < restoreUntil) return;
+  /* ---------- прогресс чтения (v2: отдельно по каждой записи) ---------- */
+  var P_KEY = 'tales-p2', store = { v: 2, i: {} }, didRestore = false;
+  function numsOf(slug) { var a = $('#tale-' + slug); return a ? $$('.variant', a).map(function (v) { return v.getAttribute('data-num') || ''; }) : []; }
+  function persist() { lsSet(P_KEY, JSON.stringify(store)); }
+  function loadStore() {
+    var st = lsJson(P_KEY);
+    if (st && st.v === 2 && st.i && typeof st.i === 'object') { store = st; return; }
+    store = { v: 2, i: {} };
+    /* миграция старого формата: tales-progress {slug: {num, idx, pct}} + tales-last */
+    var old = lsJson('tales-progress'), last = lsGet('tales-last'), n = 0, any = false;
+    if (old) Object.keys(old).forEach(function (slug) {
+      var e = old[slug], nums = numsOf(slug);
+      if (!e || typeof e !== 'object' || !nums.length) return;
+      var num = e.num && nums.indexOf(String(e.num)) > -1 ? String(e.num) : nums[0];
+      var p = Math.max(1, Math.min(99, parseInt(e.pct, 10) || 1));
+      store.i[slug + '/' + num] = { p: p, i: Math.max(0, parseInt(e.idx, 10) || 0), t: 0, d: 0, ts: Date.now() - (slug === last ? 0 : 60000 * (1 + n++)) };
+      any = true;
+    });
+    if (any) persist();
+  }
+  function ent(slug, num) { return store.i[slug + '/' + num] || null; }
+  function statusOf(slug, num) {
+    var e = ent(slug, num);
+    if (e && e.d) return { k: 'done' };
+    if (e && e.p >= 1) return { k: 'prog', p: Math.min(99, e.p) };
+    return { k: 'new' };
+  }
+  function statusText(st) { return st.k === 'done' ? 'прочитана' : st.k === 'prog' ? 'в процессе ' + st.p + '%' : 'не начата'; }
+  function curNum() { var v = visVariant(); return v ? (v.getAttribute('data-num') || '') : ''; }
+  function fmtT(sec) { sec = Math.max(0, Math.floor(sec)); var m = Math.floor(sec / 60), r = sec % 60; return m + ':' + (r < 10 ? '0' : '') + r; }
+
+  function readPos() {
     var v = visVariant();
-    if (!v) return;
+    if (!v) return null;
     var max = scroller.scrollHeight - scroller.clientHeight;
     var pct = max > 8 ? Math.round(scroller.scrollTop / max * 100) : 0;
-    var ps = $$('p', v), sTop = scroller.getBoundingClientRect().top, idx = 0, lastP = ps[ps.length - 1];
+    var ps = $$('p', v), sr = scroller.getBoundingClientRect(), idx = 0, lastP = ps[ps.length - 1];
     for (var i = 0; i < ps.length; i++) {
-      if (ps[i].getBoundingClientRect().bottom > sTop + 16) { idx = i; break; }
+      if (ps[i].getBoundingClientRect().bottom > sr.top + 16) { idx = i; break; }
     }
-    var all = lsJson('tales-progress') || {};
-    var done = lastP && lastP.getBoundingClientRect().bottom <= scroller.getBoundingClientRect().bottom + 2;
-    if (done) {
-      delete all[curSlug];
-      if (lsGet('tales-last') === curSlug) lsDel('tales-last');
-    } else if (pct >= 1) {
-      all[curSlug] = { num: v.getAttribute('data-num') || '', idx: idx, pct: Math.min(99, pct) };
-      lsSet('tales-last', curSlug);
+    return { pct: pct, idx: idx, atEnd: max > 8 && !!lastP && lastP.getBoundingClientRect().bottom <= sr.bottom + 2 };
+  }
+  function saveProgress() {
+    saveTimer = null;
+    if (!isOpen || !curSlug || Date.now() < restoreUntil || jumpHold) return;
+    var pos = readPos();
+    if (!pos) return;
+    var key = curSlug + '/' + curNum(), e = store.i[key];
+    if (e && e.d) return;
+    if (pos.atEnd) {
+      store.i[key] = { p: 100, i: pos.idx, t: 0, d: 1, ts: Date.now() };
     } else {
-      return;
+      if (pos.pct < 3 && e && e.p >= 10) return;   /* прыжок к началу не сбрасывает прогресс */
+      if (pos.pct < 1) return;
+      store.i[key] = { p: Math.min(99, Math.max(e ? e.p : 0, pos.pct)), i: pos.idx, t: e ? e.t : 0, d: 0, ts: Date.now() };
     }
-    lsSet('tales-progress', JSON.stringify(all));
+    persist();
+    paintMark();
   }
   scroller.addEventListener('scroll', function () {
     if (saveTimer == null) saveTimer = setTimeout(saveProgress, 300);
   }, { passive: true });
-  window.addEventListener('pagehide', function () { if (saveTimer != null) { clearTimeout(saveTimer); saveProgress(); } });
-
-  var resume = $('#resume'), resumeGo = $('#resume-go'), resumeT = $('#resume-t'), resumeX = $('#resume-x');
-  function updateResume() {
-    if (!resume) return;
-    var last = lsGet('tales-last'), all = lsJson('tales-progress') || {}, e = last && all[last];
-    var art = last && $('#tale-' + last);
-    if (!e || !art || !(e.pct >= 1)) { resume.hidden = true; return; }
-    resumeT.textContent = art.getAttribute('data-title') + ' · ' + e.pct + '%';
-    resumeGo.setAttribute('href', '#tale-' + last + (e.num ? '/' + e.num : ''));
-    resume.hidden = false;
-  }
-  resumeGo.addEventListener('click', function (e) {
-    var last = lsGet('tales-last'), all = lsJson('tales-progress') || {}, en = last && all[last];
-    if (!en) return;
-    e.preventDefault();
-    pendingResume = { slug: last, idx: en.idx || 0 };
-    var target = '#tale-' + last + (en.num ? '/' + en.num : '');
-    if (location.hash === target) onHash(); else location.hash = target;
+  window.addEventListener('pagehide', function () {
+    if (saveTimer != null) { clearTimeout(saveTimer); saveProgress(); }
+    saveVoice(true);
   });
+
+  /* озвучка: секунда для продолжения */
+  function saveVoice(force) {
+    if (!audioKey || !rAudio || !isFinite(rAudio.currentTime)) return;
+    var t = rAudio.currentTime, dur = rAudio.duration;
+    if (!force && Math.abs(t - lastSavedT) < 3) return;
+    if (t < 3) return;
+    var e = store.i[audioKey] || { p: 0, i: 0, t: 0, d: 0, ts: 0 };
+    if (e.d) return;
+    var near = isFinite(dur) && dur - t < 3;
+    e.t = near ? 0 : Math.floor(t);
+    if (isFinite(dur) && dur > 0) e.p = Math.min(99, Math.max(e.p, Math.round(t / dur * 100)));
+    e.ts = Date.now();
+    store.i[audioKey] = e;
+    lastSavedT = t;
+    persist();
+  }
+  rAudio.addEventListener('timeupdate', function () { saveVoice(false); updateLeft(); });
+  rAudio.addEventListener('pause', function () { saveVoice(true); updateLeft(); });
+  rAudio.addEventListener('loadedmetadata', function () {
+    if (pendingT && isFinite(rAudio.duration) && pendingT < rAudio.duration - 3 && Math.abs(rAudio.currentTime - pendingT) > 1) {
+      try { rAudio.currentTime = pendingT; } catch (e) {}
+    }
+    pendingT = 0;
+    updateLeft();
+  });
+  rAudio.addEventListener('ended', function () {
+    if (!audioKey) return;
+    store.i[audioKey] = { p: 100, i: (store.i[audioKey] || {}).i || 0, t: 0, d: 1, ts: Date.now() };
+    persist(); paintMark(); updateLeft();
+  });
+
+  /* осталось читать: слова (150 слов/мин) и, если пошла озвучка, оставшаяся длительность */
+  function countWords() {
+    words = 0;
+    paraEls().forEach(function (p) { var m = p.textContent.trim().match(/\S+/g); words += m ? m.length : 0; });
+  }
+  function updateLeft() {
+    if (!isOpen || !rLeft) return;
+    var v = visVariant();
+    if (!v || !words) { rLeft.textContent = ''; return; }
+    var st = statusOf(curSlug, curNum()), txt;
+    if (st.k === 'done') txt = 'Прочитана';
+    else {
+      var vr = v.getBoundingClientRect(), sr = scroller.getBoundingClientRect();
+      var frac = vr.height > 0 ? Math.min(1, Math.max(0, (sr.top + 16 - vr.top) / vr.height)) : 0;
+      var m = words * (1 - frac) / 150;
+      txt = m < 0.5 ? 'Осталось меньше минуты' : 'Осталось ~' + Math.ceil(m) + ' мин';
+    }
+    if (audioKey && isFinite(rAudio.duration) && rAudio.duration > 0 && (rAudio.currentTime > 1 || !rAudio.paused)) {
+      var rest = (rAudio.duration - rAudio.currentTime) / 60;
+      txt += ' · голос: ' + (rest < 0.5 ? 'меньше минуты' : '~' + Math.ceil(rest) + ' мин');
+    }
+    rLeft.textContent = txt;
+  }
+
+  /* отметки «прочитана / сбросить» */
+  function paintMark() {
+    if (!rState) return;
+    var num = curNum(), st = statusOf(curSlug || '', num), e = ent(curSlug || '', num);
+    rState.textContent = 'Эта запись: ' + statusText(st) + '.';
+    rDone.disabled = st.k === 'done';
+    rReset.disabled = !e;
+    updateLeft();
+  }
+  rDone.addEventListener('click', function () {
+    var key = curSlug + '/' + curNum(), e = store.i[key];
+    store.i[key] = { p: 100, i: e ? e.i : 0, t: 0, d: 1, ts: Date.now() };
+    persist(); paintMark();
+  });
+  rReset.addEventListener('click', function () {
+    var key = curSlug + '/' + curNum();
+    delete store.i[key];
+    persist();
+    if (audioKey === key) { pendingT = 0; lastSavedT = 0; if (rAudio.paused) { try { rAudio.currentTime = 0; } catch (e) {} } rVoice.textContent = 'Голос читает эту запись целиком.'; }
+    scroller.scrollTop = 0;
+    paintMark();
+  });
+
+  /* ---------- «Продолжить чтение», «Недочитанные», отметки в списке ---------- */
+  var resume = $('#resume'), resumeGo = $('#resume-go'), resumeT = $('#resume-t'), resumeX = $('#resume-x');
+  var unf = $('#unf'), unfList = $('#unf-list');
+  function inProgress() {
+    return Object.keys(store.i).map(function (k) {
+      var m = k.split('/');
+      return { key: k, slug: m[0], num: m[1] || '', e: store.i[k] };
+    }).filter(function (x) {
+      return x.e && !x.e.d && x.e.p >= 1 && $('#tale-' + x.slug) && numsOf(x.slug).indexOf(x.num) > -1;
+    }).sort(function (a, b) { return (b.e.ts || 0) - (a.e.ts || 0); });
+  }
+  function entryLabel(x) {
+    var t = $('#tale-' + x.slug).getAttribute('data-title');
+    return t + (numsOf(x.slug).length > 1 ? ' · № ' + x.num : '') + ' · ' + Math.min(99, x.e.p) + '%';
+  }
+  function hrefOf(x) { return '#tale-' + x.slug + (x.num ? '/' + x.num : ''); }
+  function updateResume() {
+    paintCards();
+    var list = inProgress();
+    if (resume) {
+      if (!list.length) resume.hidden = true;
+      else {
+        resumeT.textContent = entryLabel(list[0]);
+        resumeGo.setAttribute('href', hrefOf(list[0]));
+        resumeGo.setAttribute('data-key', list[0].key);
+        resume.hidden = false;
+      }
+    }
+    if (unf) {
+      unfList.innerHTML = '';
+      list.slice(1, 4).forEach(function (x) {
+        var li = document.createElement('li'), a = document.createElement('a');
+        a.href = hrefOf(x); a.setAttribute('data-key', x.key); a.className = 'unf-a';
+        a.textContent = entryLabel(x);
+        li.appendChild(a); unfList.appendChild(li);
+      });
+      unf.hidden = list.length < 2;
+    }
+  }
+  function goResume(a, ev) {
+    var key = a.getAttribute('data-key'), e = key && store.i[key];
+    if (!e) return;
+    ev.preventDefault();
+    var m = key.split('/');
+    pendingResume = { slug: m[0], idx: e.i || 0 };
+    var target = a.getAttribute('href');
+    if (location.hash === target) onHash(); else location.hash = target;
+  }
+  resumeGo.addEventListener('click', function (e) { goResume(resumeGo, e); });
+  unfList.addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('a'); if (a) goResume(a, e); });
   resumeX.addEventListener('click', function () {
-    var last = lsGet('tales-last'), all = lsJson('tales-progress') || {};
-    if (last) { delete all[last]; lsSet('tales-progress', JSON.stringify(all)); }
-    lsDel('tales-last');
+    var key = resumeGo.getAttribute('data-key');
+    if (key) { delete store.i[key]; persist(); }
     updateResume();
   });
+  /* отметка в карточках списка: не начата / в процессе N% / прочитана */
+  function paintCards() {
+    $$('.tcard').forEach(function (c) {
+      var slug = c.getAttribute('data-tale'), nums = numsOf(slug), box = $('.tstat', c);
+      if (!nums.length) return;
+      if (!box) { box = document.createElement('span'); box.className = 'tstat'; c.insertBefore(box, $('.tmeta', c)); }
+      box.innerHTML = '';
+      nums.forEach(function (n) {
+        var st = statusOf(slug, n), b = document.createElement('span');
+        b.className = 'st st-' + st.k;
+        b.textContent = (nums.length > 1 ? '№ ' + n + ' · ' : '') + statusText(st) + (st.k === 'done' ? ' ✓' : '');
+        box.appendChild(b);
+      });
+    });
+  }
+
+  /* ---------- герои: только те, кто есть в текстах сайта ---------- */
+  function norm(t) { return String(t).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]+/g, ' '); }
+  var HEROES = [
+    { id: 'yaga', name: 'Баба-Яга', re: /баб[аыеуо]й?-яг|яга-баб|(?:^|[^а-я])яг[аиеуой](?:[^а-я]|$)/g },
+    { id: 'koschey', name: 'Кощей', re: /кощ/g },
+    { id: 'morozko', name: 'Морозко', re: /морозк/g },
+    { id: 'wolf', name: 'Волк', re: /(?:^|[^а-я])вол[кч]/g },
+    { id: 'bear', name: 'Медведь', re: /медвед/g },
+    { id: 'firebird', name: 'Жар-птица', re: /жар-птиц/g },
+    { id: 'vasilisa', name: 'Василиса', re: /василис/g },
+    { id: 'ivan', name: 'Иван-царевич', re: /иван-царевич/g },
+    { id: 'witch', name: 'Ведьма', re: /ведьм/g },
+    { id: 'stepmother', name: 'Мачеха', re: /мачех/g },
+    { id: 'pike', name: 'Щука', re: /(?:^|[^а-я])щук/g }
+  ];
+  var TALES = order.map(function (slug) {
+    var art = $('#tale-' + slug), card = $('.tcard[data-tale="' + slug + '"]'), vs = $$('.variant', art);
+    var full = ' ' + vs.map(function (v) { return $$('p', v).map(function (p) { return p.textContent; }).join(' '); }).join(' ') + ' ';
+    var nf = full.toLowerCase().replace(/ё/g, 'е'), counts = {};
+    HEROES.forEach(function (h) { var m = nf.match(h.re); counts[h.id] = m ? m.length : 0; });
+    var first = vs.map(function (v) { return $$('p', v).slice(0, 3).map(function (p) { return p.textContent; }).join(' '); }).join(' ');
+    var mins = vs.map(function (v) { return parseInt(v.getAttribute('data-min'), 10) || 0; });
+    var hn = HEROES.filter(function (h) { return counts[h.id] > 0; }).map(function (h) { return h.name; }).join(' ');
+    return {
+      slug: slug, title: art.getAttribute('data-title'), li: card ? card.parentNode : null, counts: counts, mins: mins,
+      voice: vs.some(function (v) { return !!v.getAttribute('data-audio'); }),
+      idx: ' ' + norm([art.getAttribute('data-title'), art.getAttribute('data-nums'), card ? $('.tblurb', card).textContent : '', hn, first].join(' ')) + ' '
+    };
+  });
+  function talesBySlug(s) { return TALES.filter(function (t) { return t.slug === s; })[0]; }
+
+  /* «Ещё сказки с этим героем»: только по реальным упоминаниям в текстах (не меньше 3 в обеих сказках) */
+  function renderRelated(slug) {
+    rRelated.innerHTML = ''; rRelated.hidden = true;
+    var me = talesBySlug(slug);
+    if (!me) return;
+    var strong = HEROES.filter(function (h) { return me.counts[h.id] >= 3; }).sort(function (a, b) { return me.counts[b.id] - me.counts[a.id]; }).slice(0, 2);
+    strong.forEach(function (h) {
+      var others = TALES.filter(function (t) { return t.slug !== slug && t.counts[h.id] >= 3; }).slice(0, 4);
+      if (!others.length) return;
+      var p = document.createElement('p'), ul = document.createElement('p');
+      p.className = 'rrel-k'; p.textContent = 'Ещё сказки, где есть: ' + h.name;
+      ul.className = 'rrel-l';
+      others.forEach(function (t) {
+        var a = document.createElement('a'); a.href = '#tale-' + t.slug; a.textContent = t.title; ul.appendChild(a);
+      });
+      rRelated.appendChild(p); rRelated.appendChild(ul);
+    });
+    rRelated.hidden = !rRelated.firstChild;
+  }
+  rRelated.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a');
+    if (!a) return;
+    e.preventDefault();
+    location.replace(a.getAttribute('href'));
+  });
+
+  /* ---------- поиск и фильтры сказок ---------- */
+  var tsec = $('#tales'), tgrid = $('.tgrid', tsec);
+  var F = { q: '', hero: {}, len: '', voice: false }, lastRand = null;
+  var ui = {};
+  function chip(label, cls) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip' + (cls ? ' ' + cls : ''); b.textContent = label;
+    b.setAttribute('aria-pressed', 'false');
+    return b;
+  }
+  function buildSearch() {
+    var box = document.createElement('div');
+    box.className = 'tsearch'; box.setAttribute('role', 'search');
+    box.innerHTML =
+      '<div class="qrow"><label class="vh-only" for="q">Найти сказку</label>' +
+      '<input id="q" class="qin" type="search" placeholder="Название, герой, слово из начала" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">' +
+      '<button type="button" class="chip chip-rand" id="q-rand"><span aria-hidden="true">🎲</span> Случайная сказка</button></div>' +
+      '<div class="qgrp" role="group" aria-label="Длина" id="q-len"><span class="qcap" aria-hidden="true">Длина</span></div>' +
+      '<div class="qgrp qgrp-h" role="group" aria-label="Герой" id="q-hero"><span class="qcap" aria-hidden="true">Герой</span></div>' +
+      '<div class="qgrp" role="group" aria-label="Озвучка" id="q-voice"><span class="qcap" aria-hidden="true">Озвучка</span></div>' +
+      '<p class="qstat" id="q-stat" role="status" aria-live="polite"></p>' +
+      '<div class="qempty" id="q-empty" hidden></div>';
+    tgrid.parentNode.insertBefore(box, tgrid);
+    ui.q = $('#q', box); ui.stat = $('#q-stat', box); ui.empty = $('#q-empty', box);
+    var len = $('#q-len', box), hero = $('#q-hero', box), voice = $('#q-voice', box);
+    [['short', 'до 5 мин'], ['long', 'на вечер (больше 10 мин)']].forEach(function (x) {
+      var b = chip(x[1]); b.setAttribute('data-len', x[0]); len.appendChild(b);
+    });
+    HEROES.forEach(function (h) {
+      if (!TALES.some(function (t) { return t.counts[h.id] > 0; })) return;
+      var b = chip(h.name); b.setAttribute('data-hero', h.id); hero.appendChild(b);
+    });
+    var vb = chip('есть озвучка'); vb.setAttribute('data-voice', '1'); voice.appendChild(vb);
+    var clr = document.createElement('button');
+    clr.type = 'button'; clr.className = 'chip chip-clr'; clr.id = 'q-clr'; clr.textContent = 'Сбросить фильтры'; clr.hidden = true;
+    voice.appendChild(clr);
+    ui.clr = clr;
+    ui.q.addEventListener('input', function () { F.q = ui.q.value; applyFilters(); });
+    ui.q.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { var first = TALES.filter(function (t) { return t.li && !t.li.hidden; })[0]; if (first && (F.q || e.shiftKey)) { location.hash = '#tale-' + first.slug; } e.preventDefault(); }
+    });
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('button');
+      if (!b) return;
+      if (b.id === 'q-rand') return randomTale();
+      if (b.id === 'q-clr') { F = { q: '', hero: {}, len: '', voice: false }; ui.q.value = ''; return applyFilters(); }
+      if (b.hasAttribute('data-hero')) { var id = b.getAttribute('data-hero'); if (F.hero[id]) delete F.hero[id]; else F.hero[id] = true; }
+      else if (b.hasAttribute('data-len')) { var l = b.getAttribute('data-len'); F.len = F.len === l ? '' : l; }
+      else if (b.hasAttribute('data-voice')) F.voice = !F.voice;
+      else return;
+      applyFilters();
+    });
+    ui.box = box;
+  }
+  function tokens(q) { return norm(q).trim().split(/\s+/).filter(Boolean); }
+  function stemOf(t) { return t.length >= 6 ? t.slice(0, -2) : t.length >= 4 ? t.slice(0, -1) : t; }
+  function matchQ(t, toks) { return toks.every(function (k) { return t.idx.indexOf(' ' + stemOf(k)) > -1; }); }
+  function matchF(t) {
+    var ids = Object.keys(F.hero);
+    if (ids.length && !ids.some(function (id) { return t.counts[id] > 0; })) return false;
+    if (F.len === 'short' && !t.mins.some(function (m) { return m > 0 && m <= 5; })) return false;
+    if (F.len === 'long' && !t.mins.some(function (m) { return m > 10; })) return false;
+    if (F.voice && !t.voice) return false;
+    return true;
+  }
+  function filtersActive() { return !!(tokens(F.q).length || Object.keys(F.hero).length || F.len || F.voice); }
+  function applyFilters() {
+    var toks = tokens(F.q), shown = [];
+    TALES.forEach(function (t) {
+      var ok = matchF(t) && matchQ(t, toks);
+      if (t.li) t.li.hidden = !ok;
+      if (ok) shown.push(t);
+    });
+    $$('[data-hero]', ui.box).forEach(function (b) { b.setAttribute('aria-pressed', F.hero[b.getAttribute('data-hero')] ? 'true' : 'false'); });
+    $$('[data-len]', ui.box).forEach(function (b) { b.setAttribute('aria-pressed', F.len === b.getAttribute('data-len') ? 'true' : 'false'); });
+    $('[data-voice]', ui.box).setAttribute('aria-pressed', F.voice ? 'true' : 'false');
+    ui.clr.hidden = !filtersActive();
+    ui.stat.textContent = filtersActive() ? 'Найдено: ' + shown.length + ' из ' + TALES.length : 'Сказок: ' + TALES.length;
+    ui.empty.innerHTML = '';
+    ui.empty.hidden = shown.length > 0;
+    if (!shown.length) {
+      var h = document.createElement('p');
+      h.textContent = 'Ничего не нашлось. Проверьте написание, попробуйте другое слово или сбросьте фильтры. Возможно, подойдёт одна из этих сказок:';
+      ui.empty.appendChild(h);
+      var pool = TALES.filter(matchF), ranked = pool.length ? pool : TALES;
+      var scored = ranked.map(function (t) {
+        var sc = toks.filter(function (k) { return k.length >= 3 && t.idx.indexOf(' ' + k.slice(0, 3)) > -1; }).length;
+        return { t: t, sc: sc };
+      }).sort(function (a, b) { return b.sc - a.sc; }).slice(0, 3);
+      var ul = document.createElement('p'); ul.className = 'qsim';
+      scored.forEach(function (x) {
+        var a = document.createElement('a'); a.href = '#tale-' + x.t.slug; a.textContent = x.t.title; ul.appendChild(a);
+      });
+      ui.empty.appendChild(ul);
+    }
+  }
+  function randomTale() {
+    var pool = TALES.filter(function (t) { return t.li && !t.li.hidden; });
+    if (!pool.length) pool = TALES;
+    if (pool.length > 1) pool = pool.filter(function (t) { return t.slug !== lastRand; });
+    var t = pool[Math.floor(Math.random() * pool.length)];
+    lastRand = t.slug;
+    location.hash = '#tale-' + t.slug;
+  }
+  if (tgrid) { buildSearch(); applyFilters(); }
+
+  /* ---------- меню: подсветка текущего раздела ---------- */
+  var SECS = [['tales', 'tales'], ['characters', 'characters'], ['plots', 'characters'], ['reading', 'reading'], ['gods', 'gods']];
+  var navTick = false;
+  function markNav() {
+    navTick = false;
+    var cur = '';
+    SECS.forEach(function (s) {
+      var el = document.getElementById(s[0]);
+      if (el && el.getBoundingClientRect().top <= window.innerHeight * 0.35) cur = s[1];
+    });
+    $$('a', menu).forEach(function (a) {
+      var on = !isOpen && a.getAttribute('href') === '#' + cur;
+      a.classList.toggle('cur', on);
+      if (on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+    });
+  }
+  function queueNav() { if (!navTick) { navTick = true; requestAnimationFrame(markNav); } }
+  window.addEventListener('scroll', queueNav, { passive: true });
+  window.addEventListener('resize', queueNav);
+  window.addEventListener('hashchange', queueNav);
+
+  loadStore();
+  paintCards();
 
   /* ---------- кнопка «Наверх» ---------- */
   var upBtn = $('#to-top');
@@ -461,5 +842,6 @@
   loadRs();
   onHash();
   updateResume();
+  queueNav();
   updateUp();
 })();
