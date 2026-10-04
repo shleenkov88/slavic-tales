@@ -52,6 +52,19 @@
     try { localStorage.setItem('tales-rs', String(rs)); } catch (e) {}
     applyRs();
   }
+  /* тема чтения: пергамент по умолчанию, «ночь» — прежнее тёмное оформление */
+  var themeBtn = $('#r-theme');
+  function applyRt(t) {
+    root.setAttribute('data-rt', t);
+    themeBtn.setAttribute('aria-pressed', t === 'night' ? 'false' : 'true');
+    themeBtn.setAttribute('aria-label', t === 'night' ? 'Светлый режим чтения (пергамент)' : 'Ночной режим чтения');
+    themeBtn.firstChild.textContent = t === 'night' ? '\u2600' : '\u263E';
+  }
+  applyRt(lsGet('tales-rt') === 'night' ? 'night' : 'paper');
+  themeBtn.addEventListener('click', function () {
+    var t = root.getAttribute('data-rt') === 'night' ? 'paper' : 'night';
+    lsSet('tales-rt', t); applyRt(t);
+  });
   minus.addEventListener('click', function () { changeRs(-2); });
   plus.addEventListener('click', function () { changeRs(2); });
 

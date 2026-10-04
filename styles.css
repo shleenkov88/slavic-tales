@@ -222,3 +222,34 @@ html:not(.js) .barrow { flex-wrap: wrap; }
 .mcredit { font-size: 15px; overflow-wrap: anywhere; }
 .rpage { padding-bottom: 130px; }
 @media print { .fab { display: none !important; } }
+
+/* режим чтения: пергамент (по умолчанию) / ночь; переключатель #r-theme, ключ localStorage tales-rt */
+.rtheme { font-size: 20px; padding: 0 12px; }
+html[data-rt="paper"].reading .reader, html[data-rt="paper"].reading .fab {
+  --ink: #231509; --muted: #3d2418; --gold: #561410; --gold2: #561410; --line: rgba(84,48,26,.45);
+  color-scheme: light;
+}
+html[data-rt="paper"] .reader {
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse 85% 80% at 50% 45%, rgba(0,0,0,0) 55%, rgba(110,66,22,.16) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .36 0 0 0 0 .14 .6 0 0 0 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .36 0 0 0 0 .22 0 0 0 0 .08 .5 0 0 0 -.17'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, #f7edd2 0%, #f3e6c3 55%, #eedcb3 100%);
+}
+html[data-rt="paper"] .rbar { background: rgba(242,230,198,.97); border-bottom-color: rgba(94,24,20,.5); }
+html[data-rt="paper"] .rprog { background: rgba(94,24,20,.18); }
+html[data-rt="paper"] .rprog > span { background: #561410; }
+html[data-rt="paper"] .rbtn { color: #461210; background: rgba(101,24,19,.08); border-color: #561410; }
+html[data-rt="paper"] .rpos, html[data-rt="paper"] .kicker { color: #561410; }
+html[data-rt="paper"] .rpage h2 { color: #561410; }
+html[data-rt="paper"] #r-audio { color-scheme: light; }
+html[data-rt="paper"] .rjumps button, html[data-rt="paper"] .rtabs button { color: #461210; background: rgba(255,250,235,.35); border-color: rgba(84,48,26,.5); }
+html[data-rt="paper"] .rtabs button[aria-pressed="true"] { background: #561410; color: #fbf1d8; border-color: #461210; }
+html[data-rt="paper"] .prose .vh { color: #561410; }
+html[data-rt="paper"] .prose .variant > p:first-of-type:not(.dlg)::first-letter { color: #561410; text-shadow: 1px 1px 0 rgba(94,24,20,.18); }
+html[data-rt="paper"] .rnext a { color: #461210; background: rgba(255,250,235,.4); border-color: #561410; }
+html[data-rt="paper"] #r-fig { border-color: rgba(84,48,26,.5); filter: sepia(.25) saturate(.9); }
+html[data-rt="paper"].reading .fab > button { color: #461210; background: rgba(240,226,190,.97); border-color: #561410; box-shadow: 0 6px 16px rgba(60,30,10,.35); }
+html[data-rt="paper"].reading .fab-music[aria-pressed="true"] { background: #561410; color: #fbf1d8; box-shadow: 0 0 0 3px rgba(101,24,19,.25), 0 6px 16px rgba(60,30,10,.35); }
+html[data-rt="paper"].reading .fab-music[aria-pressed="false"]::after { background: #461210; }

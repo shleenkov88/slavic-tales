@@ -21,7 +21,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/ruslan-display-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/philosopher-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=6">
 <script>document.documentElement.className+=' js';</script>
 </head>
 <body id="top">
@@ -2538,7 +2538,8 @@
   <div class="rbar">
     <button type="button" class="rbtn" id="r-close"><span aria-hidden="true">←</span> К сказкам</button>
     <p class="rpos" id="r-pos" hidden></p>
-    <div class="rsize" role="group" aria-label="Размер шрифта">
+    <div class="rsize" role="group" aria-label="Оформление и размер шрифта">
+      <button type="button" class="rbtn rtheme" id="r-theme" aria-pressed="true" aria-label="Ночной режим чтения" title="Свет / Ночь"><span aria-hidden="true">☾</span></button>
       <button type="button" class="rbtn" id="r-minus" aria-label="Уменьшить шрифт">А−</button>
       <button type="button" class="rbtn" id="r-plus" aria-label="Увеличить шрифт">А+</button>
     </div>
@@ -2569,6 +2570,6 @@
   <button type="button" class="fab-music" id="music" aria-label="Фоновая музыка" aria-pressed="false" title="Фоновая музыка: выключена"><span aria-hidden="true">🎵</span></button>
 </div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>
