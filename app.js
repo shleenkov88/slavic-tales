@@ -87,7 +87,7 @@
       if (audio) {
         rAudio.hidden = false;
         rVoice.hidden = false;
-        rVoice.textContent = audio.indexOf('geese-') === -1 ? 'Голос читает начало. Дальше — сам текст.' : 'Голос читает эту запись целиком.';
+        rVoice.textContent = 'Голос читает эту запись целиком.';
         if (rAudio.getAttribute('src') !== audio) rAudio.src = audio;
       } else {
         rAudio.hidden = true;
