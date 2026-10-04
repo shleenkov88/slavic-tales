@@ -20,7 +20,7 @@
   /* ---------- режим чтения ---------- */
   var reader = $('#reader'), scroller = $('#r-scroll');
   var rTitle = $('#r-title'), rKicker = $('#r-kicker'), rTabs = $('#r-tabs'), rBody = $('#r-body'), rSrc = $('#r-src'), rNext = $('#r-next');
-  var rPos = $('#r-pos'), prog = $('#r-prog');
+  var rAudio = $('#r-audio'), rFig = $('#r-fig'), rVoice = $('#r-voice'), rJumps = $('#r-jumps');
   var minus = $('#r-minus'), plus = $('#r-plus');
   var inertEls = $$('#bar, #main, .foot, #texts, .skip');
   var order = $$('.tale-text').map(function (a) { return a.id.replace('tale-', ''); });
@@ -60,6 +60,19 @@
     var v = vs[k];
     if (v) {
       rKicker.textContent = 'по Афанасьеву № ' + v.getAttribute('data-num') + ' · около ' + v.getAttribute('data-min') + ' мин';
+      var audio = v.getAttribute('data-audio');
+      rAudio.pause();
+      if (audio) {
+        rAudio.hidden = false;
+        rVoice.hidden = false;
+        rVoice.textContent = audio.indexOf('geese-') === -1 ? 'Голос читает начало. Дальше — сам текст.' : 'Голос читает эту запись целиком.';
+        if (rAudio.getAttribute('src') !== audio) rAudio.src = audio;
+      } else {
+        rAudio.hidden = true;
+        rAudio.removeAttribute('src');
+        rVoice.hidden = false;
+        rVoice.textContent = 'Эту запись голос пока не читает.';
+      }
       if (vs.length > 1) {
         rPos.hidden = false;
         rPos.textContent = 'вариант ' + (k + 1) + ' из ' + vs.length;
@@ -84,6 +97,9 @@
   function render(slug, num) {
     var art = $('#tale-' + slug);
     rTitle.textContent = art.getAttribute('data-title');
+    var img = art.getAttribute('data-img');
+    if (img) { rFig.src = img; rFig.hidden = false; rFig.alt = art.getAttribute('data-title'); }
+    else rFig.hidden = true;
     rBody.innerHTML = '';
     rTabs.innerHTML = '';
     var variants = $$('.variant', art);
@@ -138,6 +154,7 @@
   function closeReader() {
     if (!isOpen) return;
     reader.hidden = true;
+    if (rAudio) rAudio.pause();
     root.classList.remove('reading');
     inertEls.forEach(function (el) { el.removeAttribute('inert'); });
     isOpen = false;
@@ -173,6 +190,16 @@
     else if (bar.classList.contains('open')) { setMenu(false); menubtn.focus(); }
   });
 
+  rJumps.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('button');
+    if (!b) return;
+    var part = parseFloat(b.getAttribute('data-jump'));
+    var vis = $('.variant:not([hidden])', rBody) || $('.variant', rBody);
+    if (!vis) return;
+    var ps = $$('p', vis);
+    var el = ps[Math.min(ps.length - 1, Math.floor(ps.length * part))] || vis;
+    el.scrollIntoView({ block: 'start' });
+  });
   loadRs();
   onHash();
 })();
