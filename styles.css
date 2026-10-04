@@ -316,3 +316,26 @@ html[data-rt="paper"] .rrel-l a { color: #461210; border-color: #561410; backgro
 html[data-rt="paper"] .rstate { color: var(--muted); }
 html[data-rt="paper"] .rbtn:disabled { opacity: .5; }
 @media print { .tsearch, .unf, .tstat { display: none !important; } }
+
+details.fold { margin: 0; }
+details.fold > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  color: var(--gold2);
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 22px;
+}
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary::before {
+  content: "▸";
+  color: var(--gold);
+  width: 1em;
+  flex: 0 0 auto;
+}
+details.fold[open] > summary::before { content: "▾"; }
+details.fold-sec > summary { font-size: 32px; color: var(--gold2); }
+details.fold .lede, details.fold .prose-block, details.fold .cgrid, details.fold .pgrid, details.fold .tgrid { margin-top: 4px; }

@@ -1,4 +1,20 @@
 (function () {
+  function openFolds(el) {
+    var node = el;
+    while (node) {
+      if (node.tagName === "DETAILS") node.open = true;
+      node = node.parentElement;
+    }
+  }
+  function openHash() {
+    var id = (location.hash || "").slice(1);
+    if (!id || id.indexOf("tale-") === 0) return;
+    var el = document.getElementById(id);
+    if (el) openFolds(el);
+  }
+  window.addEventListener("hashchange", openHash);
+  openHash();
+
   'use strict';
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
