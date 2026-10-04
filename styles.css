@@ -192,3 +192,9 @@ html:not(.js) .barrow { flex-wrap: wrap; }
 .tg-s { color: var(--gold2); }
 .tg-f { color: var(--text); }
 .tg-h { color: var(--muted); }
+
+.gnote { margin: 18px 0; padding: 14px 0; border-top: 1px solid var(--line); }
+.gnote h3 { font-family: "Philosopher", Georgia, serif; font-size: 26px; color: var(--gold2); margin: 0 0 8px; }
+.gnote p { margin: 0 0 8px; }
+.tg-n { color: var(--text); }
+.tg-v { color: var(--muted); }
