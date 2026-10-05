@@ -298,6 +298,20 @@ html[data-rt="paper"].reading .fab > button { color: #461210; background: rgba(2
 html[data-rt="paper"].reading .fab-music[aria-pressed="true"] { background: #561410; color: #fbf1d8; box-shadow: 0 0 0 3px rgba(101,24,19,.25), 0 6px 16px rgba(60,30,10,.35); }
 html[data-rt="paper"].reading .fab-music[aria-pressed="false"]::after { background: #461210; }
 
+/* поиск: одно поле и список */
+.find-label { display: block; margin: 0 0 8px; font-size: 18px; color: var(--gold2); }
+#find .qin { display: block; width: 100%; box-sizing: border-box; min-height: 56px; font-size: 22px; }
+.find-ex { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.find-hint { margin: 14px 0 0; font-size: 18px; color: var(--ink); }
+.find-list { display: grid; gap: 8px; margin-top: 12px; }
+.find-hit { display: block; padding: 12px 14px; text-decoration: none; color: var(--ink); background: rgba(52,37,29,.55); border: 1px solid var(--line); border-left: 4px solid var(--gold); }
+.find-title { display: block; font-family: "Philosopher", Georgia, serif; font-size: 22px; font-weight: 700; color: var(--gold2); }
+.find-where { display: block; margin-top: 2px; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.find-blurb { display: block; margin-top: 4px; font-size: 16px; color: var(--ink); }
+.find-any { display: block; width: 100%; margin-top: 16px; min-height: 52px; font: inherit; font-size: 18px; color: #1a120a; background: var(--gold); border: 0; border-radius: 10px; cursor: pointer; }
+.find-hit:focus, .find-any:focus, .qin:focus { outline: none; }
+@media (hover: hover) { .find-hit:hover { border-color: var(--gold); } }
+
 /* поиск и фильтры сказок */
 .tsearch { margin: 18px 0 4px; padding: 14px; border: 1px solid var(--line); background: rgba(52,37,29,.55); }
 .qrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }

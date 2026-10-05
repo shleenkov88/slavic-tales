@@ -581,7 +581,9 @@
     return {
       slug: slug, title: art.getAttribute('data-title'), li: card ? card.parentNode : null, counts: counts, mins: mins,
       voice: vs.some(function (v) { return !!v.getAttribute('data-audio'); }),
-      idx: ' ' + norm([art.getAttribute('data-title'), art.getAttribute('data-nums'), card ? $('.tblurb', card).textContent : '', hn, first].join(' ')) + ' '
+      idx: ' ' + norm(art.getAttribute('data-title') + ' ' + (card && $('.tblurb', card) ? $('.tblurb', card).textContent : '') + ' ' + full) + ' ',
+      blurb: card && $('.tblurb', card) ? $('.tblurb', card).textContent : '',
+      where: art.getAttribute('data-nums') || ''
     };
   });
   function talesBySlug(s) { return TALES.filter(function (t) { return t.slug === s; })[0]; }
@@ -612,114 +614,73 @@
     location.replace(a.getAttribute('href'));
   });
 
-  /* ---------- поиск и фильтры сказок ---------- */
-  var tsec = $('#tales'), tgrid = $('.tgrid', tsec);
-  var F = { q: '', hero: {}, len: '', voice: false }, lastRand = null;
-  var ui = {};
-  function chip(label, cls) {
-    var b = document.createElement('button');
-    b.type = 'button'; b.className = 'chip' + (cls ? ' ' + cls : ''); b.textContent = label;
-    b.setAttribute('aria-pressed', 'false');
-    return b;
-  }
-  function buildSearch() {
-    var box = document.createElement('div');
-    box.className = 'tsearch'; box.setAttribute('role', 'search');
-    box.innerHTML =
-      '<div class="qrow"><label class="vh-only" for="q">Найти сказку</label>' +
-      '<input id="q" class="qin" type="search" placeholder="Название, герой, слово из начала" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">' +
-      '<button type="button" class="chip chip-rand" id="q-rand"><span aria-hidden="true">🎲</span> Случайная сказка</button></div>' +
-      '<div class="qgrp" role="group" aria-label="Длина" id="q-len"><span class="qcap" aria-hidden="true">Длина</span></div>' +
-      '<div class="qgrp qgrp-h" role="group" aria-label="Герой" id="q-hero"><span class="qcap" aria-hidden="true">Герой</span></div>' +
-      '<div class="qgrp" role="group" aria-label="Озвучка" id="q-voice"><span class="qcap" aria-hidden="true">Озвучка</span></div>' +
-      '<p class="qstat" id="q-stat" role="status" aria-live="polite"></p>' +
-      '<div class="qempty" id="q-empty" hidden></div>';
-    tgrid.parentNode.insertBefore(box, tgrid);
-    ui.q = $('#q', box); ui.stat = $('#q-stat', box); ui.empty = $('#q-empty', box);
-    var len = $('#q-len', box), hero = $('#q-hero', box), voice = $('#q-voice', box);
-    [['short', 'до 5 мин'], ['long', 'на вечер (больше 10 мин)']].forEach(function (x) {
-      var b = chip(x[1]); b.setAttribute('data-len', x[0]); len.appendChild(b);
-    });
-    HEROES.forEach(function (h) {
-      if (!TALES.some(function (t) { return t.counts[h.id] > 0; })) return;
-      var b = chip(h.name); b.setAttribute('data-hero', h.id); hero.appendChild(b);
-    });
-    var vb = chip('есть озвучка'); vb.setAttribute('data-voice', '1'); voice.appendChild(vb);
-    var clr = document.createElement('button');
-    clr.type = 'button'; clr.className = 'chip chip-clr'; clr.id = 'q-clr'; clr.textContent = 'Сбросить фильтры'; clr.hidden = true;
-    voice.appendChild(clr);
-    ui.clr = clr;
-    ui.q.addEventListener('input', function () { F.q = ui.q.value; applyFilters(); });
-    ui.q.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') { var first = TALES.filter(function (t) { return t.li && !t.li.hidden; })[0]; if (first && (F.q || e.shiftKey)) { location.hash = '#tale-' + first.slug; } e.preventDefault(); }
-    });
-    box.addEventListener('click', function (e) {
-      var b = e.target.closest && e.target.closest('button');
-      if (!b) return;
-      if (b.id === 'q-rand') return randomTale();
-      if (b.id === 'q-clr') { F = { q: '', hero: {}, len: '', voice: false }; ui.q.value = ''; return applyFilters(); }
-      if (b.hasAttribute('data-hero')) { var id = b.getAttribute('data-hero'); if (F.hero[id]) delete F.hero[id]; else F.hero[id] = true; }
-      else if (b.hasAttribute('data-len')) { var l = b.getAttribute('data-len'); F.len = F.len === l ? '' : l; }
-      else if (b.hasAttribute('data-voice')) F.voice = !F.voice;
-      else return;
-      applyFilters();
-    });
-    ui.box = box;
-  }
-  function tokens(q) { return norm(q).trim().split(/\s+/).filter(Boolean); }
-  function stemOf(t) { return t.length >= 6 ? t.slice(0, -2) : t.length >= 4 ? t.slice(0, -1) : t; }
-  function matchQ(t, toks) { return toks.every(function (k) { return t.idx.indexOf(' ' + stemOf(k)) > -1; }); }
-  function matchF(t) {
-    var ids = Object.keys(F.hero);
-    if (ids.length && !ids.some(function (id) { return t.counts[id] > 0; })) return false;
-    if (F.len === 'short' && !t.mins.some(function (m) { return m > 0 && m <= 5; })) return false;
-    if (F.len === 'long' && !t.mins.some(function (m) { return m > 10; })) return false;
-    if (F.voice && !t.voice) return false;
-    return true;
-  }
-  function filtersActive() { return !!(tokens(F.q).length || Object.keys(F.hero).length || F.len || F.voice); }
-  function applyFilters() {
-    var toks = tokens(F.q), shown = [];
-    TALES.forEach(function (t) {
-      var ok = matchF(t) && matchQ(t, toks);
-      if (t.li) t.li.hidden = !ok;
-      if (ok) shown.push(t);
-    });
-    $$('[data-hero]', ui.box).forEach(function (b) { b.setAttribute('aria-pressed', F.hero[b.getAttribute('data-hero')] ? 'true' : 'false'); });
-    $$('[data-len]', ui.box).forEach(function (b) { b.setAttribute('aria-pressed', F.len === b.getAttribute('data-len') ? 'true' : 'false'); });
-    $('[data-voice]', ui.box).setAttribute('aria-pressed', F.voice ? 'true' : 'false');
-    ui.clr.hidden = !filtersActive();
-    ui.stat.textContent = filtersActive() ? 'Найдено: ' + shown.length + ' из ' + TALES.length : 'Сказок: ' + TALES.length;
-    ui.empty.innerHTML = '';
-    ui.empty.hidden = shown.length > 0;
-    if (!shown.length) {
-      var h = document.createElement('p');
-      h.textContent = 'Ничего не нашлось. Проверьте написание, попробуйте другое слово или сбросьте фильтры. Возможно, подойдёт одна из этих сказок:';
-      ui.empty.appendChild(h);
-      var pool = TALES.filter(matchF), ranked = pool.length ? pool : TALES;
-      var scored = ranked.map(function (t) {
-        var sc = toks.filter(function (k) { return k.length >= 3 && t.idx.indexOf(' ' + k.slice(0, 3)) > -1; }).length;
-        return { t: t, sc: sc };
-      }).sort(function (a, b) { return b.sc - a.sc; }).slice(0, 3);
-      var ul = document.createElement('p'); ul.className = 'qsim';
-      scored.forEach(function (x) {
-        var a = document.createElement('a'); a.href = '#tale-' + x.t.slug; a.textContent = x.t.title; ul.appendChild(a);
-      });
-      ui.empty.appendChild(ul);
+  /* ---------- поиск: одно слово, список названий ---------- */
+  var findBox = $('#findbox');
+  function showFind(q) {
+    var list = $('#find-list'), hint = $('#find-hint');
+    if (!list) return;
+    list.innerHTML = '';
+    var raw = norm(q).trim();
+    if (raw.length < 2) {
+      hint.hidden = false;
+      hint.textContent = 'Напиши слово в строку. Например: яга.';
+      return;
     }
+    var stem = raw.length >= 5 ? raw.slice(0, -1) : raw;
+    var hits = TALES.filter(function (t) { return t.idx.indexOf(raw) > -1 || t.idx.indexOf(stem) > -1; });
+    hits.sort(function (a, b) {
+      var at = norm(a.title).indexOf(raw) > -1 ? 0 : 1;
+      var bt = norm(b.title).indexOf(raw) > -1 ? 0 : 1;
+      return at - bt;
+    });
+    hint.hidden = false;
+    if (!hits.length) {
+      hint.textContent = 'Такого слова нет. Напиши короче: не «колобки», а «колоб».';
+      return;
+    }
+    hint.textContent = hits.length === 1 ? 'Нашлась 1 сказка. Нажми на неё.' : 'Нашлось сказок: ' + hits.length + '. Нажми на название.';
+    hits.forEach(function (t) {
+      var a = document.createElement('a');
+      a.className = 'find-hit';
+      a.href = '#tale-' + t.slug;
+      a.innerHTML = '<span class="find-title"></span><span class="find-where"></span><span class="find-blurb"></span>';
+      $('.find-title', a).textContent = t.title;
+      $('.find-where', a).textContent = t.where;
+      $('.find-blurb', a).textContent = t.blurb;
+      list.appendChild(a);
+    });
   }
-  function randomTale() {
-    var pool = TALES.filter(function (t) { return t.li && !t.li.hidden; });
-    if (!pool.length) pool = TALES;
-    if (pool.length > 1) pool = pool.filter(function (t) { return t.slug !== lastRand; });
-    var t = pool[Math.floor(Math.random() * pool.length)];
-    lastRand = t.slug;
-    location.hash = '#tale-' + t.slug;
+  function buildFind() {
+    if (!findBox) return;
+    findBox.innerHTML =
+      '<label class="find-label" for="q">Слово</label>' +
+      '<input id="q" class="qin" type="search" placeholder="например: яга" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">' +
+      '<div class="find-ex" id="find-ex"></div>' +
+      '<p class="find-hint" id="find-hint">Напиши слово в строку. Например: яга.</p>' +
+      '<div class="find-list" id="find-list"></div>' +
+      '<button type="button" class="find-any" id="find-any">Не знаю, какую открыть</button>';
+    var ex = $('#find-ex');
+    ['яга', 'кощей', 'лиса', 'волк', 'колобок', 'царевна', 'мороз', 'щука'].forEach(function (w) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = w;
+      b.addEventListener('click', function () {
+        $('#q').value = w;
+        showFind(w);
+      });
+      ex.appendChild(b);
+    });
+    $('#q').addEventListener('input', function () { showFind($('#q').value); });
+    $('#find-any').addEventListener('click', function () {
+      var t = TALES[Math.floor(Math.random() * TALES.length)];
+      location.hash = '#tale-' + t.slug;
+    });
   }
-  if (tgrid) { buildSearch(); applyFilters(); }
+  buildFind();
 
   /* ---------- меню: подсветка текущего раздела ---------- */
-  var SECS = [['tales', 'tales'], ['characters', 'characters'], ['plots', 'characters'], ['reading', 'reading'], ['gods', 'gods']];
+  var SECS = [['find', 'find'], ['tales', 'tales'], ['more', 'more'], ['characters', 'characters'], ['plots', 'characters'], ['reading', 'reading'], ['gods', 'gods']];
   var navTick = false;
   function markNav() {
     navTick = false;

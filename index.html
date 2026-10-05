@@ -21,7 +21,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/ruslan-display-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/philosopher-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=18">
+<link rel="stylesheet" href="styles.css?v=19">
 <style>
 button.is-down, summary.is-down, .menu a.is-down, .tcard.is-down, .rnext a.is-down {
   filter: invert(1) !important;
@@ -42,7 +42,7 @@ a:focus, a:focus-visible, a:active,
 <script>
 document.documentElement.className += ' js';
 (function () {
-  var BUILD = '25';
+  var BUILD = '26';
   try {
     if (sessionStorage.getItem('tales-build') !== BUILD && location.search.indexOf('build=' + BUILD) < 0) {
       sessionStorage.setItem('tales-build', BUILD);
@@ -104,6 +104,7 @@ document.documentElement.className += ' js';
     <a class="brand" href="#top"><span class="brand-name"><span class="brand-l1">Славянские</span><span class="brand-l2">сказки</span></span></a>
     <button type="button" class="menubtn" id="menubtn" aria-expanded="false" aria-controls="menu"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Меню</span></button>
     <nav class="menu" id="menu" aria-label="Разделы сайта">
+      <a href="#find">Найти сказку</a>
       <a href="#tales">Сказки</a>
       <a href="#more">Ещё двадцать</a>
       <a href="#characters">Персонажи</a>
@@ -127,6 +128,12 @@ document.documentElement.className += ' js';
     <p class="unf-k" id="unf-k">Недочитанные</p>
     <ul class="unf-list" id="unf-list" aria-labelledby="unf-k"></ul>
   </div>
+</section>
+
+<section class="wrap" id="find" aria-labelledby="h-find">
+  <h2 id="h-find">Найти сказку</h2>
+  <p class="lede">Напиши одно слово: имя, зверя или что ищешь. Ниже появятся сказки, где это слово есть. Нажми на название — откроется текст.</p>
+  <div id="findbox"></div>
 </section>
 
 <section class="wrap" id="tales" aria-labelledby="h-tales">
@@ -3041,6 +3048,6 @@ document.documentElement.className += ' js';
   <button type="button" class="fab-music" id="music" aria-label="Фоновая музыка" aria-pressed="false" title="Фоновая музыка: выключена"><span aria-hidden="true">🎵</span></button>
 </div>
 
-<script src="app.js?v=17"></script>
+<script src="app.js?v=18"></script>
 </body>
 </html>
