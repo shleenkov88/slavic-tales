@@ -339,3 +339,15 @@ details.fold > summary::before {
 details.fold[open] > summary::before { content: "▾"; }
 details.fold-sec > summary { font-size: 32px; color: var(--gold2); }
 details.fold .lede, details.fold .prose-block, details.fold .cgrid, details.fold .pgrid, details.fold .tgrid { margin-top: 4px; }
+
+.sheet h3 { margin-bottom: 6px; }
+.sheet .mission { margin: 0 0 14px; color: var(--gold2); font-family: "Philosopher", Georgia, serif; font-size: 18px; line-height: 1.35; }
+.sheet dl { margin: 0; display: grid; gap: 10px; }
+.sheet dl div { display: grid; grid-template-columns: 7.2em 1fr; gap: 10px; align-items: start; }
+.sheet dt { color: var(--gold); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; padding-top: 4px; }
+.sheet dd { margin: 0; }
+.sheet .amulet { margin: 14px 0 0; padding: 12px 14px; border: 1px solid var(--line); background: rgba(0,0,0,.18); }
+.sheet .amulet span { display: block; color: var(--gold); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+@media (max-width: 520px) {
+  .sheet dl div { grid-template-columns: 1fr; gap: 2px; }
+}
