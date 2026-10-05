@@ -21,17 +21,28 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/ruslan-display-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/philosopher-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=16">
+<link rel="stylesheet" href="styles.css?v=17">
 <style>
 button.is-down, summary.is-down, .menu a.is-down, .tcard.is-down, .rnext a.is-down {
   filter: invert(1) !important;
   transform: scale(0.92) !important;
 }
+a:focus, a:focus-visible, a:active,
+.resume-go, .resume-go:focus, .resume-go:focus-visible, .resume-go:active,
+.resume-go:hover {
+  outline: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  background: transparent !important;
+  -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+}
+.resume-go { display: inline; }
+::selection { background: rgba(198,161,91,.35); color: inherit; }
 </style>
 <script>
 document.documentElement.className += ' js';
 (function () {
-  var BUILD = '21';
+  var BUILD = '22';
   try {
     if (sessionStorage.getItem('tales-build') !== BUILD && location.search.indexOf('build=' + BUILD) < 0) {
       sessionStorage.setItem('tales-build', BUILD);
@@ -40,7 +51,7 @@ document.documentElement.className += ' js';
     }
     sessionStorage.setItem('tales-build', BUILD);
   } catch (e) {}
-  var track = null, x0 = 0, y0 = 0, moved = false;
+  var track = null, x0 = 0, y0 = 0, moved = false, scrolling = false, scrollTimer = null;
   function targetOf(e) {
     var t = e.target;
     return t && t.closest && t.closest('button, summary, .menu a, .tcard, .rnext a');
@@ -49,18 +60,30 @@ document.documentElement.className += ' js';
     var p = e.touches ? e.touches[0] : e;
     return { x: p.clientX, y: p.clientY };
   }
+  function dropFocus() {
+    var el = document.activeElement;
+    if (el && el.blur && el !== document.body && el !== document.documentElement) el.blur();
+  }
   document.addEventListener('pointerdown', function (e) {
     var el = targetOf(e);
     track = el || null;
     moved = false;
-    if (!el) return;
     var p = point(e);
     x0 = p.x; y0 = p.y;
   }, true);
   document.addEventListener('pointermove', function (e) {
-    if (!track) return;
     var p = point(e);
     if (Math.abs(p.x - x0) > 10 || Math.abs(p.y - y0) > 10) moved = true;
+    if (!moved) return;
+    scrolling = true;
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function () { scrolling = false; }, 500);
+    dropFocus();
+  }, true);
+  document.addEventListener('focusin', function (e) {
+    if (!scrolling) return;
+    var el = e.target;
+    if (el && el.blur && el.closest && el.closest('a, button, summary')) el.blur();
   }, true);
   document.addEventListener('pointerup', function () {
     if (track && !moved) {
