@@ -51,9 +51,11 @@ p { margin: 0 0 .8em; }
 /* шапка: одна тонкая строка */
 .bar { position: sticky; top: 0; z-index: 50; background: rgba(24,17,13,.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(198,161,91,.45); box-shadow: 0 6px 22px rgba(0,0,0,.35); }
 .barrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--barh); position: relative; }
-.brand { flex: 0 1 auto; min-width: 0; font-family: "Ruslan Display", Georgia, serif; font-size: 22px; letter-spacing: .03em; color: var(--gold2); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; }
+.brand { flex: 1 1 auto; min-width: 0; font-family: "Ruslan Display", Georgia, serif; font-size: 22px; letter-spacing: .03em; color: var(--gold2); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; }
 .brand::before { content: ""; width: 10px; height: 10px; margin-right: 10px; background: var(--gold); transform: rotate(45deg); flex: none; }
-.menubtn { display: none; align-items: center; gap: 8px; min-height: 44px; min-width: 44px; padding: 0 14px; font: inherit; font-size: 17px; color: var(--gold2); background: rgba(198,161,91,.12); border: 1px solid var(--gold); border-radius: 999px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.brand-l2::before { content: "\00a0"; }
+.brand-name { min-width: 0; }
+.menubtn { display: none; flex: 0 0 auto; align-items: center; gap: 8px; min-height: 44px; min-width: 44px; padding: 0 14px; font: inherit; font-size: 17px; color: var(--gold2); background: rgba(198,161,91,.12); border: 1px solid var(--gold); border-radius: 999px; cursor: pointer; -webkit-tap-highlight-color: transparent; position: relative; z-index: 2; }
 .menubtn[aria-expanded="true"] { background: var(--gold); color: #1a120a; }
 .menu { display: flex; align-items: center; gap: 4px 18px; flex-wrap: wrap; justify-content: flex-end; }
 .menu a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: 18px; text-decoration: none; color: var(--gold2); border-bottom: 2px solid transparent; }
@@ -62,13 +64,15 @@ p { margin: 0 0 .8em; }
 @media (max-width: 899px) {
   :root { --barh: 52px; }
   .menubtn { display: inline-flex; }
-  .brand { font-size: 20px; }
+  .brand { align-items: center; white-space: normal; font-size: 16px; }
+  .brand-name { display: flex; flex-direction: column; align-items: flex-start; line-height: 1; gap: 1px; }
+  .brand-l2::before { content: none; }
   .menu { display: none; position: absolute; left: -16px; right: -16px; top: 100%; padding: 12px 16px 16px; flex-direction: column; align-items: stretch; gap: 8px; background: rgba(24,17,13,.98); border-bottom: 1px solid var(--gold); box-shadow: 0 18px 30px rgba(0,0,0,.55); max-height: calc(100dvh - var(--barh)); overflow-y: auto; }
   .bar.open .menu { display: flex; }
   .menu a { min-height: 48px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 10px; font-size: 19px; }
   .menu a.ext { background: rgba(198,161,91,.08); }
 }
-@media (max-width: 360px) { .barrow { gap: 8px; } .brand { font-size: 18px; } .brand::before { margin-right: 7px; width: 8px; height: 8px; } .menubtn { padding: 0 11px; gap: 6px; font-size: 16px; } }
+@media (max-width: 360px) { .barrow { gap: 8px; } .brand { font-size: 15px; } .brand::before { margin-right: 7px; width: 8px; height: 8px; } .menubtn { padding: 0 11px; gap: 6px; font-size: 16px; } }
 
 /* секции */
 section.wrap { position: relative; isolation: isolate; padding: 52px 0 14px; }
