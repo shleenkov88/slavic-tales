@@ -51,6 +51,10 @@ button:focus, button:focus-visible, a:focus, a:focus-visible, summary:focus, sum
   outline: none !important;
   outline-offset: 0 !important;
 }
+button:active, summary:active, .menu a:active, .tcard:active, .rnext a:active {
+  transform: scale(0.98);
+  filter: brightness(1.18);
+}
 
 /* шапка: одна тонкая строка */
 .bar { position: sticky; top: 0; z-index: 50; background: rgba(24,17,13,.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(198,161,91,.45); box-shadow: 0 6px 22px rgba(0,0,0,.35); }
