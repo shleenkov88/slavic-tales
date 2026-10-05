@@ -461,7 +461,9 @@
   }
   function entryLabel(x) {
     var t = $('#tale-' + x.slug).getAttribute('data-title');
-    return t + (numsOf(x.slug).length > 1 ? ' · запись ' + (x.num || '') : '') + ' · ' + Math.min(99, x.e.p) + '%';
+    var nums = numsOf(x.slug);
+    var rec = nums.indexOf(x.num) + 1;
+    return t + (nums.length > 1 ? ' · запись ' + rec : '') + ' · ' + Math.min(99, x.e.p) + '%';
   }
   function hrefOf(x) { return '#tale-' + x.slug + (x.num ? '/' + x.num : ''); }
   function updateResume() {
