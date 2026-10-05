@@ -200,12 +200,12 @@ html:not(.js) .barrow { flex-wrap: wrap; }
 .tg-v { color: var(--muted); }
 
 /* продолжить чтение */
-.resume { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; margin: 18px 0 0; max-width: 34em; }
+.resume { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; margin: 8px 0 0; }
 .resume[hidden] { display: none; }
-.resume-go { flex: 1 1 260px; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 56px; padding: 10px 18px; text-decoration: none; color: var(--gold2); background: rgba(198,161,91,.14); border: 1px solid var(--gold); border-left-width: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.4); }
-.resume-k { font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }
-.resume-t { font-family: "Philosopher", Georgia, serif; font-size: 21px; font-weight: 700; line-height: 1.25; color: var(--ink); overflow-wrap: anywhere; }
-.resume-x { min-height: 44px; align-self: center; padding: 0 14px; font: inherit; font-size: 16px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
+.resume-go { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; text-decoration: none; color: var(--ink); }
+.resume-k { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+.resume-t { font-family: "Philosopher", Georgia, serif; font-size: 17px; line-height: 1.3; }
+.resume-x { padding: 0; font: inherit; font-size: 15px; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 @media (hover:hover) { .resume-go:hover { background: rgba(198,161,91,.24); } .resume-x:hover { color: var(--gold2); border-color: var(--gold); } }
 
 /* плавающие кнопки: наверх и музыка */
