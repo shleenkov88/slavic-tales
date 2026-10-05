@@ -45,9 +45,12 @@ p { margin: 0 0 .8em; }
 .vh-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .skip { position: absolute; left: 8px; top: -60px; z-index: 100; background: var(--gold); color: #1a120a; padding: 10px 14px; text-decoration: none; }
 .skip:focus { top: 8px; }
-html, button, a, summary, input { -webkit-tap-highlight-color: transparent; }
-:focus { outline: none; }
-:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gold2); }
+html, body, button, a, summary, input, label, span { -webkit-tap-highlight-color: rgba(0,0,0,0) !important; }
+button, a, summary { -webkit-appearance: none; appearance: none; }
+button:focus, button:focus-visible, a:focus, a:focus-visible, summary:focus, summary:focus-visible, input:focus, input:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+}
 
 /* шапка: одна тонкая строка */
 .bar { position: sticky; top: 0; z-index: 50; background: rgba(24,17,13,.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(198,161,91,.45); box-shadow: 0 6px 22px rgba(0,0,0,.35); }
@@ -281,7 +284,7 @@ html[data-rt="paper"].reading .fab-music[aria-pressed="false"]::after { backgrou
 .qrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
 .qin { flex: 1 1 240px; min-width: 0; min-height: 48px; padding: 0 14px; font: inherit; font-size: 18px; color: var(--ink); background: rgba(20,13,10,.7); border: 1px solid var(--gold); border-radius: 10px; }
 .qin::placeholder { color: var(--muted); opacity: 1; }
-.qin:focus-visible, .chip:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gold2); }
+.qin:focus, .qin:focus-visible, .chip:focus, .chip:focus-visible { outline: none !important; box-shadow: none; }
 .chip { min-height: 44px; padding: 0 14px; font: inherit; font-size: 16px; color: var(--gold2); background: transparent; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
 .chip[aria-pressed="true"] { background: var(--gold); color: #1a120a; border-color: var(--gold2); }
 .chip-rand { border-color: var(--gold); background: rgba(198,161,91,.12); }

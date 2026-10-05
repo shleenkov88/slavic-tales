@@ -857,6 +857,11 @@
     if (v && rAudio && !rAudio.paused) rAudio.pause();
   }
   document.addEventListener('visibilitychange', function () { setAway(document.hidden || document.visibilityState === 'hidden'); });
+  document.addEventListener('pointerup', function (e) {
+    var el = e.target && e.target.closest && e.target.closest('button, a, summary');
+    if (!el || el.matches('input, textarea')) return;
+    setTimeout(function () { if (document.activeElement === el) el.blur(); }, 0);
+  });
   window.addEventListener('pagehide', function () { setAway(true); });
   window.addEventListener('pageshow', function () { setAway(!!document.hidden); });
   window.addEventListener('blur', function () { setAway(true); });
