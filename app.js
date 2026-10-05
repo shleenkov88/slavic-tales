@@ -100,7 +100,7 @@
     $$('button', rTabs).forEach(function (b, i) { b.setAttribute('aria-pressed', i === k ? 'true' : 'false'); });
     var v = vs[k];
     if (v) {
-      rKicker.textContent = 'по Афанасьеву № ' + v.getAttribute('data-num') + ' · около ' + v.getAttribute('data-min') + ' мин';
+      rKicker.textContent = (v.getAttribute('data-label') || '') + ' · около ' + v.getAttribute('data-min') + ' мин';
       var audio = v.getAttribute('data-audio');
       saveVoice(true);
       rAudio.pause();
@@ -163,7 +163,7 @@
       variants.forEach(function (v, i) {
         var b = document.createElement('button');
         b.type = 'button';
-        b.textContent = '№ ' + v.getAttribute('data-num') + ' · ~' + v.getAttribute('data-min') + ' мин';
+        b.textContent = 'Запись ' + (v.getAttribute('data-rec') || (i + 1)) + ' · ~' + v.getAttribute('data-min') + ' мин';
         b.addEventListener('click', function () {
           showVariant(i);
           var next = '#tale-' + slug + '/' + v.getAttribute('data-num');
@@ -461,7 +461,7 @@
   }
   function entryLabel(x) {
     var t = $('#tale-' + x.slug).getAttribute('data-title');
-    return t + (numsOf(x.slug).length > 1 ? ' · № ' + x.num : '') + ' · ' + Math.min(99, x.e.p) + '%';
+    return t + (numsOf(x.slug).length > 1 ? ' · запись ' + (x.num || '') : '') + ' · ' + Math.min(99, x.e.p) + '%';
   }
   function hrefOf(x) { return '#tale-' + x.slug + (x.num ? '/' + x.num : ''); }
   function updateResume() {
@@ -513,7 +513,7 @@
       nums.forEach(function (n) {
         var st = statusOf(slug, n), b = document.createElement('span');
         b.className = 'st st-' + st.k;
-        b.textContent = (nums.length > 1 ? '№ ' + n + ' · ' : '') + statusText(st) + (st.k === 'done' ? ' ✓' : '');
+        b.textContent = (nums.length > 1 ? 'Запись ' + (nums.indexOf(n) + 1) + ' · ' : '') + statusText(st) + (st.k === 'done' ? ' ✓' : '');
         box.appendChild(b);
       });
     });
