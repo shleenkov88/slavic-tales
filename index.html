@@ -21,7 +21,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/ruslan-display-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/philosopher-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="styles.css?v=9">
 <script>document.documentElement.className+=' js';</script>
 </head>
 <body id="top">
@@ -2664,7 +2664,13 @@
       <p class="kicker" id="r-kicker"></p>
       <h2 id="r-title" tabindex="-1"></h2>
       <img id="r-fig" alt="" hidden>
-      <audio id="r-audio" controls preload="none"></audio>
+      <audio id="r-audio" preload="none"></audio>
+      <div class="rplay" id="r-play" hidden>
+        <button type="button" class="rplay-btn" id="r-play-btn" aria-label="Слушать">▶</button>
+        <span class="rplay-time" id="r-play-time">0:00</span>
+        <input class="rplay-seek" id="r-play-seek" type="range" min="0" max="1000" value="0" aria-label="Место в записи">
+        <span class="rplay-dur" id="r-play-dur">0:00</span>
+      </div>
       <p class="rvoice" id="r-voice" hidden></p>
       <div class="rjumps" id="r-jumps" role="group" aria-label="По тексту">
         <button type="button" data-jump="0">Начало</button>
@@ -2692,6 +2698,6 @@
   <button type="button" class="fab-music" id="music" aria-label="Фоновая музыка" aria-pressed="false" title="Фоновая музыка: выключена"><span aria-hidden="true">🎵</span></button>
 </div>
 
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>

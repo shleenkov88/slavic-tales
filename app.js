@@ -43,7 +43,7 @@
   /* ---------- режим чтения ---------- */
   var reader = $('#reader'), scroller = $('#r-scroll');
   var rTitle = $('#r-title'), rKicker = $('#r-kicker'), rTabs = $('#r-tabs'), rBody = $('#r-body'), rSrc = $('#r-src'), rNext = $('#r-next');
-  var rAudio = $('#r-audio'), rFig = $('#r-fig'), rVoice = $('#r-voice'), rJumps = $('#r-jumps');
+  var rAudio = $('#r-audio'), rPlay = $('#r-play'), rPlayBtn = $('#r-play-btn'), rSeek = $('#r-play-seek'), rPlayTime = $('#r-play-time'), rPlayDur = $('#r-play-dur'), rFig = $('#r-fig'), rVoice = $('#r-voice'), rJumps = $('#r-jumps');
   var rPos = $('#r-pos'), prog = $('#r-prog');
   var minus = $('#r-minus'), plus = $('#r-plus');
   var inertEls = $$('#bar, #main, .foot, #texts, .skip');
@@ -108,6 +108,7 @@
         var ve = ent(curSlug, v.getAttribute('data-num') || '');
         pendingT = ve && ve.t > 3 ? ve.t : 0;
         rAudio.hidden = false;
+        if (rPlay) rPlay.hidden = false;
         rVoice.hidden = false;
         rVoice.textContent = 'Голос читает эту запись целиком.' + (pendingT ? ' Продолжится с ' + fmtT(pendingT) + '.' : '');
         if (rAudio.getAttribute('src') !== audio) {
@@ -119,6 +120,7 @@
       } else {
         audioKey = null; pendingT = 0;
         rAudio.hidden = true;
+        if (rPlay) rPlay.hidden = true;
         rAudio.removeAttribute('src');
         rVoice.hidden = false;
         rVoice.textContent = 'Эту запись голос пока не читает.';
@@ -386,20 +388,52 @@
     lastSavedT = t;
     persist();
   }
-  rAudio.addEventListener('timeupdate', function () { saveVoice(false); updateLeft(); });
-  rAudio.addEventListener('pause', function () { saveVoice(true); updateLeft(); });
+  rAudio.addEventListener('timeupdate', function () { saveVoice(false); updateLeft(); paintPlay(); });
+  rAudio.addEventListener('pause', function () { saveVoice(true); updateLeft(); paintPlay(); });
   rAudio.addEventListener('loadedmetadata', function () {
     if (pendingT && isFinite(rAudio.duration) && pendingT < rAudio.duration - 3 && Math.abs(rAudio.currentTime - pendingT) > 1) {
       try { rAudio.currentTime = pendingT; } catch (e) {}
     }
     pendingT = 0;
     updateLeft();
+    paintPlay();
   });
   rAudio.addEventListener('ended', function () {
     if (!audioKey) return;
     store.i[audioKey] = { p: 100, i: (store.i[audioKey] || {}).i || 0, t: 0, d: 1, ts: Date.now() };
-    persist(); paintMark(); updateLeft();
+    persist(); paintMark(); updateLeft(); paintPlay();
   });
+  var seeking = false;
+  function paintPlay() {
+    if (!rPlay || !rSeek) return;
+    var dur = rAudio.duration, t = rAudio.currentTime || 0, ok = isFinite(dur) && dur > 0;
+    if (rPlayTime) rPlayTime.textContent = fmtT(t);
+    if (rPlayDur) rPlayDur.textContent = ok ? fmtT(dur) : '0:00';
+    if (!seeking) {
+      var pct = ok ? (t / dur * 100) : 0;
+      rSeek.value = String(Math.round(pct * 10));
+      rSeek.style.setProperty('--p', pct + '%');
+    }
+    if (rPlayBtn) {
+      rPlayBtn.textContent = rAudio.paused ? '▶' : '❚❚';
+      rPlayBtn.setAttribute('aria-label', rAudio.paused ? 'Слушать' : 'Пауза');
+    }
+  }
+  if (rPlayBtn) rPlayBtn.addEventListener('click', function () {
+    if (rAudio.paused) { var p = rAudio.play(); if (p && p.catch) p.catch(function () {}); }
+    else rAudio.pause();
+  });
+  if (rSeek) {
+    rSeek.addEventListener('input', function () {
+      seeking = true;
+      rSeek.style.setProperty('--p', (rSeek.value / 10) + '%');
+    });
+    rSeek.addEventListener('change', function () {
+      seeking = false;
+      if (isFinite(rAudio.duration)) rAudio.currentTime = rAudio.duration * (rSeek.value / 1000);
+      paintPlay();
+    });
+  }
 
   /* осталось читать: слова (150 слов/мин) и, если пошла озвучка, оставшаяся длительность */
   function countWords() {
