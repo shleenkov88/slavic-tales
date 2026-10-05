@@ -21,8 +21,51 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/ruslan-display-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/philosopher-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=14">
-<script>document.documentElement.className+=' js';</script>
+<link rel="stylesheet" href="styles.css?v=15">
+<style>
+button.is-down, summary.is-down, .menu a.is-down, .tcard.is-down, .rnext a.is-down,
+button:active, summary:active, .menu a:active, .tcard:active, .rnext a:active {
+  background: #c6a15b !important;
+  color: #1a120a !important;
+  border-color: #e7d3a1 !important;
+}
+html[data-rt="paper"] .reader button.is-down,
+html[data-rt="paper"] .reader button:active {
+  background: #561410 !important;
+  color: #fbf1d8 !important;
+  border-color: #3a0d0a !important;
+}
+html[data-rt="paper"] .rplay-btn.is-down,
+html[data-rt="paper"] .rplay-btn:active,
+html[data-rt="paper"] .rtabs button[aria-pressed="true"].is-down,
+html[data-rt="paper"] .rtabs button[aria-pressed="true"]:active {
+  background: #f3e6c4 !important;
+  color: #561410 !important;
+}
+</style>
+<script>
+document.documentElement.className += ' js';
+(function () {
+  var BUILD = '20';
+  try {
+    if (sessionStorage.getItem('tales-build') !== BUILD && location.search.indexOf('build=' + BUILD) < 0) {
+      sessionStorage.setItem('tales-build', BUILD);
+      location.replace(location.pathname + '?build=' + BUILD + location.hash);
+      return;
+    }
+    sessionStorage.setItem('tales-build', BUILD);
+  } catch (e) {}
+  function hit(e) {
+    var t = e.target;
+    var el = t && t.closest && t.closest('button, summary, .menu a, .tcard, .rnext a');
+    if (!el) return;
+    el.classList.add('is-down');
+    setTimeout(function () { el.classList.remove('is-down'); }, 400);
+  }
+  document.addEventListener('pointerdown', hit, true);
+  document.addEventListener('touchstart', hit, { capture: true, passive: true });
+})();
+</script>
 </head>
 <body id="top">
 <a class="skip" href="#tales">К сказкам</a>
@@ -2698,6 +2741,6 @@
   <button type="button" class="fab-music" id="music" aria-label="Фоновая музыка" aria-pressed="false" title="Фоновая музыка: выключена"><span aria-hidden="true">🎵</span></button>
 </div>
 
-<script src="app.js?v=15"></script>
+<script src="app.js?v=16"></script>
 </body>
 </html>
