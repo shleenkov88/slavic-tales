@@ -302,7 +302,7 @@ html[data-rt="paper"].reading .fab-music[aria-pressed="false"]::after { backgrou
 .find-label { display: block; margin: 0 0 8px; font-size: 18px; color: var(--gold2); }
 #find .qin { display: block; width: 100%; box-sizing: border-box; min-height: 56px; font-size: 22px; }
 .find-ex { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.find-hint { margin: 14px 0 0; font-size: 18px; color: var(--ink); }
+.find-hint { margin: 14px 0 0; padding: 10px 12px; font-size: 20px; line-height: 1.35; color: var(--ink); background: rgba(198,161,91,.16); border-left: 4px solid var(--gold); }
 .find-list { display: grid; gap: 8px; margin-top: 12px; }
 .find-hit { display: block; padding: 12px 14px; text-decoration: none; color: var(--ink); background: rgba(52,37,29,.55); border: 1px solid var(--line); border-left: 4px solid var(--gold); }
 .find-title { display: block; font-family: "Philosopher", Georgia, serif; font-size: 22px; font-weight: 700; color: var(--gold2); }

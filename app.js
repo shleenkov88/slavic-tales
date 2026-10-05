@@ -615,31 +615,72 @@
   });
 
   /* ---------- поиск: одно слово, список названий ---------- */
+  function lev(a, b) {
+    if (a === b) return 0;
+    if (Math.abs(a.length - b.length) > 2) return 9;
+    var prev = [], i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      var cur = [i];
+      for (j = 1; j <= b.length; j++) {
+        var cost = a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1;
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+      }
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  TALES.forEach(function (t) {
+    var seen = {};
+    t.words = t.idx.split(' ').filter(function (w) {
+      if (w.length < 3 || seen[w]) return false;
+      seen[w] = 1;
+      return true;
+    });
+  });
+  function taleNear(t, q) {
+    if (t.idx.indexOf(q) > -1) return 0;
+    var stem = q.length >= 6 ? q.slice(0, -2) : q.length >= 4 ? q.slice(0, -1) : '';
+    if (stem.length >= 3 && t.idx.indexOf(stem) > -1) return 1;
+    var best = 9, i;
+    for (i = 0; i < t.words.length; i++) {
+      var w = t.words[i];
+      if (Math.abs(w.length - q.length) > 2) continue;
+      var d = lev(q, w.length > q.length + 1 ? w.slice(0, q.length + 1) : w);
+      if (d < best) best = d;
+      if (best <= 1) return best;
+    }
+    return best;
+  }
   var findBox = $('#findbox');
   function showFind(q) {
     var list = $('#find-list'), hint = $('#find-hint');
-    if (!list) return;
+    if (!list || !hint) return;
     list.innerHTML = '';
     var raw = norm(q).trim();
     if (raw.length < 2) {
-      hint.hidden = false;
       hint.textContent = 'Напиши слово в строку. Например: яга.';
       return;
     }
-    var stem = raw.length >= 5 ? raw.slice(0, -1) : raw;
-    var hits = TALES.filter(function (t) { return t.idx.indexOf(raw) > -1 || t.idx.indexOf(stem) > -1; });
-    hits.sort(function (a, b) {
-      var at = norm(a.title).indexOf(raw) > -1 ? 0 : 1;
-      var bt = norm(b.title).indexOf(raw) > -1 ? 0 : 1;
+    var scored = [];
+    TALES.forEach(function (t) {
+      var d = taleNear(t, raw);
+      if (d <= 1) scored.push({ t: t, d: d });
+    });
+    scored.sort(function (a, b) {
+      if (a.d !== b.d) return a.d - b.d;
+      var at = norm(a.t.title).indexOf(raw) > -1 ? 0 : 1;
+      var bt = norm(b.t.title).indexOf(raw) > -1 ? 0 : 1;
       return at - bt;
     });
-    hint.hidden = false;
-    if (!hits.length) {
-      hint.textContent = 'Такого слова нет. Напиши короче: не «колобки», а «колоб».';
+    if (!scored.length) {
+      hint.textContent = 'Такого слова нет. Напиши короче или нажми кнопку ниже.';
       return;
     }
-    hint.textContent = hits.length === 1 ? 'Нашлась 1 сказка. Нажми на неё.' : 'Нашлось сказок: ' + hits.length + '. Нажми на название.';
-    hits.forEach(function (t) {
+    var fuzzy = scored[0].d > 0 && norm(scored[0].t.title).indexOf(raw) < 0 && scored[0].t.idx.indexOf(raw) < 0;
+    hint.textContent = (fuzzy ? 'Похоже на это. ' : '') + (scored.length === 1 ? 'Нашлась 1 сказка. Нажми на неё.' : 'Нашлось сказок: ' + scored.length + '. Нажми на название.');
+    scored.forEach(function (x) {
+      var t = x.t;
       var a = document.createElement('a');
       a.className = 'find-hit';
       a.href = '#tale-' + t.slug;
@@ -649,12 +690,16 @@
       $('.find-blurb', a).textContent = t.blurb;
       list.appendChild(a);
     });
+    var vv = window.visualViewport;
+    var top = list.getBoundingClientRect().top;
+    var room = vv ? vv.height : window.innerHeight;
+    if (top > room - 140) window.scrollBy(0, top - 90);
   }
   function buildFind() {
     if (!findBox) return;
     findBox.innerHTML =
       '<label class="find-label" for="q">Слово</label>' +
-      '<input id="q" class="qin" type="search" placeholder="например: яга" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">' +
+      '<input id="q" class="qin" type="search" inputmode="search" placeholder="например: яга" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">' +
       '<div class="find-ex" id="find-ex"></div>' +
       '<p class="find-hint" id="find-hint">Напиши слово в строку. Например: яга.</p>' +
       '<div class="find-list" id="find-list"></div>' +
@@ -666,12 +711,17 @@
       b.className = 'chip';
       b.textContent = w;
       b.addEventListener('click', function () {
-        $('#q').value = w;
+        var q = $('#q');
+        q.value = w;
         showFind(w);
       });
       ex.appendChild(b);
     });
-    $('#q').addEventListener('input', function () { showFind($('#q').value); });
+    var qel = $('#q');
+    function onType() { showFind(qel.value); }
+    qel.addEventListener('input', onType);
+    qel.addEventListener('keyup', onType);
+    qel.addEventListener('search', onType);
     $('#find-any').addEventListener('click', function () {
       var t = TALES[Math.floor(Math.random() * TALES.length)];
       location.hash = '#tale-' + t.slug;
