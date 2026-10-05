@@ -51,9 +51,13 @@ button:focus, button:focus-visible, a:focus, a:focus-visible, summary:focus, sum
   outline: none !important;
   outline-offset: 0 !important;
 }
+button.is-down, summary.is-down, .menu a.is-down, .tcard.is-down, .rnext a.is-down,
 button:active, summary:active, .menu a:active, .tcard:active, .rnext a:active {
-  transform: scale(0.98);
-  filter: brightness(1.18);
+  background: var(--gold) !important;
+  color: #1a120a !important;
+  border-color: var(--gold2) !important;
+  transform: scale(0.96);
+  filter: none;
 }
 
 /* шапка: одна тонкая строка */
@@ -263,6 +267,19 @@ html[data-rt="paper"] .rbar { background: rgba(242,230,198,.97); border-bottom-c
 html[data-rt="paper"] .rprog { background: rgba(94,24,20,.18); }
 html[data-rt="paper"] .rprog > span { background: #561410; }
 html[data-rt="paper"] .rbtn { color: #461210; background: rgba(101,24,19,.08); border-color: #561410; }
+html[data-rt="paper"] .reader button.is-down,
+html[data-rt="paper"] .reader button:active {
+  background: #561410 !important;
+  color: #fbf1d8 !important;
+  border-color: #3a0d0a !important;
+}
+html[data-rt="paper"] .rplay-btn.is-down,
+html[data-rt="paper"] .rplay-btn:active,
+html[data-rt="paper"] .rtabs button[aria-pressed="true"].is-down,
+html[data-rt="paper"] .rtabs button[aria-pressed="true"]:active {
+  background: #fbf1d8 !important;
+  color: #561410 !important;
+}
 html[data-rt="paper"] .rpos, html[data-rt="paper"] .reader .kicker { color: #561410; }
 html[data-rt="paper"] .rpage h2 { color: #561410; }
 html[data-rt="paper"] .rplay { background: rgba(255,248,230,.72); border-color: #561410; }

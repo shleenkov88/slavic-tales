@@ -857,6 +857,22 @@
     if (v && rAudio && !rAudio.paused) rAudio.pause();
   }
   document.addEventListener('visibilitychange', function () { setAway(document.hidden || document.visibilityState === 'hidden'); });
+  (function () {
+    function pressEl(e) {
+      return e.target && e.target.closest && e.target.closest('button, summary, .menu a, .tcard, .rnext a');
+    }
+    document.addEventListener('pointerdown', function (e) {
+      var el = pressEl(e);
+      if (el) el.classList.add('is-down');
+    });
+    function releasePress() {
+      var held = document.querySelectorAll('.is-down');
+      if (!held.length) return;
+      setTimeout(function () { held.forEach(function (el) { el.classList.remove('is-down'); }); }, 200);
+    }
+    document.addEventListener('pointerup', releasePress);
+    document.addEventListener('pointercancel', releasePress);
+  })();
   window.addEventListener('pagehide', function () { setAway(true); });
   window.addEventListener('pageshow', function () { setAway(!!document.hidden); });
   window.addEventListener('blur', function () { setAway(true); });
