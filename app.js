@@ -852,7 +852,10 @@
     if (should && !playing) { playing = true; startMusic(); }
     else if (!should && playing) { playing = false; stopMusic(away ? 800 : FADE_OUT); }
   }
-  function setAway(v) { if (away !== v) { away = v; sync(); } }
+  function setAway(v) {
+    if (away !== v) { away = v; sync(); }
+    if (v && rAudio && !rAudio.paused) rAudio.pause();
+  }
   document.addEventListener('visibilitychange', function () { setAway(document.hidden || document.visibilityState === 'hidden'); });
   window.addEventListener('pagehide', function () { setAway(true); });
   window.addEventListener('pageshow', function () { setAway(!!document.hidden); });
