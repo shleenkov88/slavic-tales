@@ -51,8 +51,7 @@ button:focus, button:focus-visible, a:focus, a:focus-visible, summary:focus, sum
   outline: none !important;
   outline-offset: 0 !important;
 }
-button.is-down, summary.is-down, .menu a.is-down, .tcard.is-down, .rnext a.is-down,
-button:active, summary:active, .menu a:active, .tcard:active, .rnext a:active {
+button.is-down, summary.is-down, .menu a.is-down, .tcard.is-down, .rnext a.is-down {
   background: var(--gold) !important;
   color: #1a120a !important;
   border-color: var(--gold2) !important;
@@ -267,16 +266,13 @@ html[data-rt="paper"] .rbar { background: rgba(242,230,198,.97); border-bottom-c
 html[data-rt="paper"] .rprog { background: rgba(94,24,20,.18); }
 html[data-rt="paper"] .rprog > span { background: #561410; }
 html[data-rt="paper"] .rbtn { color: #461210; background: rgba(101,24,19,.08); border-color: #561410; }
-html[data-rt="paper"] .reader button.is-down,
-html[data-rt="paper"] .reader button:active {
+html[data-rt="paper"] .reader button.is-down {
   background: #561410 !important;
   color: #fbf1d8 !important;
   border-color: #3a0d0a !important;
 }
 html[data-rt="paper"] .rplay-btn.is-down,
-html[data-rt="paper"] .rplay-btn:active,
-html[data-rt="paper"] .rtabs button[aria-pressed="true"].is-down,
-html[data-rt="paper"] .rtabs button[aria-pressed="true"]:active {
+html[data-rt="paper"] .rtabs button[aria-pressed="true"].is-down {
   background: #fbf1d8 !important;
   color: #561410 !important;
 }

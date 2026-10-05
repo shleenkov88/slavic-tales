@@ -21,10 +21,9 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/ruslan-display-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/philosopher-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=15">
+<link rel="stylesheet" href="styles.css?v=16">
 <style>
-button.is-down, summary.is-down, .menu a.is-down, .tcard.is-down, .rnext a.is-down,
-button:active, summary:active, .menu a:active, .tcard:active, .rnext a:active {
+button.is-down, summary.is-down, .menu a.is-down, .tcard.is-down, .rnext a.is-down {
   filter: invert(1) !important;
   transform: scale(0.92) !important;
 }
@@ -32,7 +31,7 @@ button:active, summary:active, .menu a:active, .tcard:active, .rnext a:active {
 <script>
 document.documentElement.className += ' js';
 (function () {
-  var BUILD = '20';
+  var BUILD = '21';
   try {
     if (sessionStorage.getItem('tales-build') !== BUILD && location.search.indexOf('build=' + BUILD) < 0) {
       sessionStorage.setItem('tales-build', BUILD);
@@ -41,15 +40,37 @@ document.documentElement.className += ' js';
     }
     sessionStorage.setItem('tales-build', BUILD);
   } catch (e) {}
-  function hit(e) {
+  var track = null, x0 = 0, y0 = 0, moved = false;
+  function targetOf(e) {
     var t = e.target;
-    var el = t && t.closest && t.closest('button, summary, .menu a, .tcard, .rnext a');
-    if (!el) return;
-    el.classList.add('is-down');
-    setTimeout(function () { el.classList.remove('is-down'); }, 700);
+    return t && t.closest && t.closest('button, summary, .menu a, .tcard, .rnext a');
   }
-  document.addEventListener('pointerdown', hit, true);
-  document.addEventListener('touchstart', hit, { capture: true, passive: true });
+  function point(e) {
+    var p = e.touches ? e.touches[0] : e;
+    return { x: p.clientX, y: p.clientY };
+  }
+  document.addEventListener('pointerdown', function (e) {
+    var el = targetOf(e);
+    track = el || null;
+    moved = false;
+    if (!el) return;
+    var p = point(e);
+    x0 = p.x; y0 = p.y;
+  }, true);
+  document.addEventListener('pointermove', function (e) {
+    if (!track) return;
+    var p = point(e);
+    if (Math.abs(p.x - x0) > 10 || Math.abs(p.y - y0) > 10) moved = true;
+  }, true);
+  document.addEventListener('pointerup', function () {
+    if (track && !moved) {
+      var el = track;
+      el.classList.add('is-down');
+      setTimeout(function () { el.classList.remove('is-down'); }, 220);
+    }
+    track = null;
+  }, true);
+  document.addEventListener('pointercancel', function () { track = null; moved = true; }, true);
 })();
 </script>
 </head>
@@ -2727,6 +2748,6 @@ document.documentElement.className += ' js';
   <button type="button" class="fab-music" id="music" aria-label="Фоновая музыка" aria-pressed="false" title="Фоновая музыка: выключена"><span aria-hidden="true">🎵</span></button>
 </div>
 
-<script src="app.js?v=16"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>
