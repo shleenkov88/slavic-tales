@@ -409,3 +409,8 @@ details.fold .lede, details.fold .prose-block, details.fold .cgrid, details.fold
 @media (max-width: 520px) {
   .sheet dl div { grid-template-columns: 1fr; gap: 2px; }
 }
+
+/* цитаты в текстовых блоках (Разбор) */
+.prose-block blockquote { margin: 14px 0; padding: 4px 0 4px 16px; border-left: 3px solid var(--gold); color: var(--ink); font-style: italic; }
+.prose-block blockquote p { margin: 0 0 .4em; }
+.prose-block blockquote cite { display: block; font-style: normal; font-size: 15px; color: var(--muted); }
