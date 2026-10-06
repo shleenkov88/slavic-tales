@@ -414,3 +414,21 @@ details.fold .lede, details.fold .prose-block, details.fold .cgrid, details.fold
 .prose-block blockquote { margin: 14px 0; padding: 4px 0 4px 16px; border-left: 3px solid var(--gold); color: var(--ink); font-style: italic; }
 .prose-block blockquote p { margin: 0 0 .4em; }
 .prose-block blockquote cite { display: block; font-style: normal; font-size: 15px; color: var(--muted); }
+
+/* пояснения к старым словам (gloss.js) */
+.gl { cursor: pointer; text-decoration: underline dotted var(--gold); text-decoration-thickness: 1.5px; text-underline-offset: .22em; border-radius: 3px; -webkit-tap-highlight-color: transparent; }
+.gl[aria-expanded="true"] { background: rgba(198,161,91,.24); }
+.gl:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.glp { position: fixed; left: 0; right: 0; bottom: 0; z-index: 400; padding: 0 max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); pointer-events: none; }
+.glp[hidden] { display: none; }
+.glp-in { pointer-events: auto; max-width: 40em; margin: 0 auto; display: flex; align-items: flex-start; gap: 6px; padding: 12px 6px 12px 16px; background: var(--bg2); color: var(--ink); border: 1px solid var(--gold); border-radius: 14px; box-shadow: 0 -4px 24px rgba(0,0,0,.45); font-size: 18px; line-height: 1.45; }
+.glp-t { margin: 0; flex: 1; padding-top: 8px; }
+.glp-t b { color: var(--gold2); font-weight: 700; }
+.glp-x { flex: 0 0 auto; min-width: 44px; min-height: 44px; font: inherit; font-size: 26px; line-height: 1; color: var(--gold2); background: transparent; border: 0; border-radius: 10px; cursor: pointer; }
+.glp-x:focus-visible { outline: 2px solid var(--gold); }
+html[data-rt="paper"] .reader .glp-in { background: #f2e6c6; color: #231509; border-color: #561410; box-shadow: 0 -4px 20px rgba(60,30,10,.3); }
+html[data-rt="paper"] .reader .glp-t b, html[data-rt="paper"] .reader .glp-x { color: #561410; }
+html[data-rt="paper"] .reader .gl[aria-expanded="true"] { background: rgba(86,20,16,.14); }
+html.gl-open .fab { opacity: 0; pointer-events: none; }
+.vnote { margin: 0 0 14px; font-style: italic; color: var(--muted); }
+@media print { .glp { display: none !important; } .gl { text-decoration: none; } }
