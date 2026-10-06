@@ -659,9 +659,11 @@
     list.innerHTML = '';
     var raw = norm(q).trim();
     if (raw.length < 2) {
-      hint.textContent = 'Напиши слово в строку. Например: яга.';
+      hint.textContent = '';
+      hint.hidden = true;
       return;
     }
+    hint.hidden = false;
     var scored = [];
     TALES.forEach(function (t) {
       var d = taleNear(t, raw);
@@ -701,7 +703,7 @@
       '<label class="find-label" for="q">Слово</label>' +
       '<input id="q" class="qin" type="search" inputmode="search" placeholder="например: яга" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">' +
       '<div class="find-ex" id="find-ex"></div>' +
-      '<p class="find-hint" id="find-hint">Напиши слово в строку. Например: яга.</p>' +
+      '<p class="find-hint" id="find-hint" hidden></p>' +
       '<div class="find-list" id="find-list"></div>' +
       '<button type="button" class="find-any" id="find-any">Не знаю, какую открыть</button>';
     var ex = $('#find-ex');
